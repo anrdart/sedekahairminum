@@ -1,5 +1,5 @@
-import { Map, MapMarker, MarkerContent, MarkerTooltip, MapControls, useMap } from "@/components/ui/map";
-import { useEffect, useState } from "react";
+import { Map, MapMarker, MarkerContent, MarkerTooltip, MapControls } from "@/components/ui/map";
+import { useEffect, useRef, useState } from "react";
 
 const distributionPoints = [
   { lng: 110.662, lat: -7.932, name: "PP An-Nur", alamat: "Ds Karangmojo, Kec. Karangmojo", galon: 6 },
@@ -37,32 +37,33 @@ function useTheme() {
   return theme;
 }
 
-function MapReady({ onReady }: { onReady: () => void }) {
-  const { isLoaded } = useMap();
-  useEffect(() => {
-    if (isLoaded) onReady();
-  }, [isLoaded, onReady]);
-  return null;
+function hideSkeleton() {
+  var skel = document.getElementById('map-skeleton');
+  if (skel) skel.style.display = 'none';
 }
 
 export default function IndonesiaMapComponent() {
   const theme = useTheme();
-  const [ready, setReady] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (ready) {
-      const skel = document.getElementById('map-skeleton');
-      if (skel) skel.style.display = 'none';
+    // Hide skeleton as soon as React mounts — map container exists
+    hideSkeleton();
+    if (containerRef.current) {
+      containerRef.current.style.opacity = '1';
     }
-  }, [ready]);
+  }, []);
 
   return (
-    <div style={{
-      height: "100%", width: "100%",
-      borderRadius: "var(--r-lg)", overflow: "hidden",
-      opacity: ready ? 1 : 0,
-      transition: "opacity 0.6s ease",
-    }}>
+    <div
+      ref={containerRef}
+      style={{
+        height: "100%", width: "100%",
+        borderRadius: "var(--r-lg)", overflow: "hidden",
+        opacity: 0,
+        transition: "opacity 0.6s ease",
+      }}
+    >
       <Map
         theme={theme}
         center={[110.58, -7.955]}
@@ -70,7 +71,6 @@ export default function IndonesiaMapComponent() {
         minZoom={9}
         maxZoom={16}
       >
-        <MapReady onReady={() => setReady(true)} />
         <MapControls position="bottom-right" showZoom />
         {distributionPoints.map((p, i) => (
           <MapMarker key={i} longitude={p.lng} latitude={p.lat}>
