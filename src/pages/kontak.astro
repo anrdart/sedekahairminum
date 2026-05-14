@@ -41,7 +41,7 @@ const rekening = [
               </div>
               <div>
                 <div class="contact-item__label">WhatsApp — Administrasi GWS</div>
-                <div class="contact-item__value"><a href="https://wa.me/6285319480974" target="_blank" rel="noopener noreferrer">+62 853-1948-0974</a></div>
+                <div class="contact-item__value"><a href="https://wa.me/6285319480974?text=Assalamu%27alaikum%2C%20saya%20ingin%20bertanya%20tentang%20program%20Sedekah%20Air%20Minum." target="_blank" rel="noopener noreferrer">+62 853-1948-0974</a></div>
                 <div class="contact-item__sub">Senin–Sabtu · 08:00–17:00 WIB</div>
               </div>
             </div>
@@ -260,16 +260,71 @@ const rekening = [
     .contact-grid { grid-template-columns: 1fr; gap: 40px; }
     .rek-grid { grid-template-columns: 1fr; }
   }
+  @media (max-width: 640px) {
+    .form__row--double { grid-template-columns: 1fr; }
+    .page-hero { padding-top: 140px; padding-bottom: 64px; }
+    .page-hero__title { font-size: clamp(36px, 8vw, 48px); }
+  }
 </style>
 
-<script>
-  const form = document.getElementById('contact-form') as HTMLFormElement;
-  const btn = document.getElementById('submit-btn')!;
-  form?.addEventListener('submit', (e) => {
+<script is:inline>
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJde3L1B6syeq_ZTMIoDlcawB0fq_wum3rsWa-YXB6CqOCMAOWoyX16G8st7YHBP7O/exec';
+  var WA_NUMBER = '6285319480974';
+
+  var form = document.getElementById('contact-form');
+  var btn = document.getElementById('submit-btn');
+  var btnDefault = 'Kirim Pesan <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
+  function buildWaUrl(nama, topik, pesan) {
+    var text = "Assalamu'alaikum, saya " + nama + ".\n\nSaya menghubungi terkait: " + topik + ".\n\n" + pesan + "\n\nTerima kasih. Jazakumullahu khairan.";
+    return 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(text);
+  }
+
+  form.addEventListener('submit', function(e) {
     e.preventDefault();
-    btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Terkirim — kami akan hubungi Anda';
-    setTimeout(() => {
-      btn.innerHTML = 'Kirim Pesan <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-    }, 5000);
+
+    var nama = form.querySelector('#nama').value.trim();
+    var phone = form.querySelector('#phone').value.trim();
+    var email = form.querySelector('#email').value.trim();
+    var topik = form.querySelector('#topik').value;
+    var pesan = form.querySelector('#pesan').value.trim();
+
+    btn.disabled = true;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="50" stroke-dashoffset="15"/></svg> Mengirim...';
+
+    var payload = {
+      nama: nama,
+      phone: phone,
+      email: email,
+      topik: topik,
+      pesan: pesan,
+      tanggal: new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
+    };
+
+    function redirectWa() {
+      window.open(buildWaUrl(nama, topik, pesan), '_blank');
+      btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Terkirim — menuju WhatsApp...';
+      btn.disabled = false;
+      setTimeout(function() { btn.innerHTML = btnDefault; }, 4000);
+    }
+
+    if (!APPS_SCRIPT_URL) {
+      redirectWa();
+      return;
+    }
+
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function() {
+      redirectWa();
+    }).catch(function() {
+      redirectWa();
+    });
   });
 </script>
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
