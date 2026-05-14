@@ -30,8 +30,6 @@ const testimonials = [
     <div class="testimonial-rail">
       {testimonials.map((t, i) => (
         <article class="testimonial fade-up" style={`transition-delay:${i * 80}ms`}>
-          <span class="testimonial__quote-mark" aria-hidden="true">&ldquo;</span>
-          <blockquote class="testimonial__body">{t.body}</blockquote>
           <div class="testimonial__author">
             <img src={t.photo} alt={t.name} class="testimonial__photo" loading="lazy" />
             <div>
@@ -39,6 +37,8 @@ const testimonials = [
               <div class="testimonial__role">{t.role}</div>
             </div>
           </div>
+          <span class="testimonial__quote-mark" aria-hidden="true">&ldquo;</span>
+          <blockquote class="testimonial__body">{t.body}</blockquote>
         </article>
       ))}
     </div>
