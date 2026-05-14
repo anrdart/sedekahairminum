@@ -59,6 +59,19 @@ const slides = [
   <div class="hero__scroll">Scroll</div>
 </section>
 
+<style>
+  .hero :global(.btn--ghost) {
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.4) !important;
+    background: rgba(255,255,255,0.1) !important;
+  }
+  .hero :global(.btn--ghost:hover) {
+    border-color: #5ee4f0 !important;
+    color: #5ee4f0 !important;
+    background: rgba(94,228,240,0.12) !important;
+  }
+</style>
+
 <script define:vars={{ slides }}>
   let idx = 0;
   const total = slides.length;

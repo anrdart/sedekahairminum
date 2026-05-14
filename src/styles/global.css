@@ -79,12 +79,14 @@ html.theme-transitioning,
 html.theme-transitioning *,
 html.theme-transitioning *::before,
 html.theme-transitioning *::after {
-  transition: background-color 0.6s var(--ease-out),
-              color 0.6s var(--ease-out),
-              border-color 0.6s var(--ease-out),
-              box-shadow 0.6s var(--ease-out),
-              fill 0.6s var(--ease-out),
-              stroke 0.6s var(--ease-out) !important;
+  transition: background-color 0.5s var(--ease-out),
+              background 0.5s var(--ease-out),
+              color 0.5s var(--ease-out),
+              border-color 0.5s var(--ease-out),
+              box-shadow 0.5s var(--ease-out),
+              fill 0.5s var(--ease-out),
+              stroke 0.5s var(--ease-out),
+              opacity 0.5s var(--ease-out) !important;
 }
 
 body {
@@ -207,7 +209,7 @@ p { margin: 0; text-wrap: pretty; }
 }
 .btn--primary {
   background: var(--aqua);
-  color: #03222a;
+  color: #ffffff;
   box-shadow: var(--shadow-glow);
 }
 .btn--primary:hover {
@@ -226,7 +228,7 @@ p { margin: 0; text-wrap: pretty; }
 }
 .btn--brass {
   background: var(--brass);
-  color: #1a1208;
+  color: #ffffff;
 }
 .btn--brass:hover { background: var(--brass-soft); transform: translateY(-1px); }
 .btn--sm { height: 40px; padding-inline: 18px; font-size: 13px; }
@@ -350,37 +352,6 @@ p { margin: 0; text-wrap: pretty; }
 }
 .theme-toggle svg { width: 18px; height: 18px; }
 
-.nav__mobile-toggle {
-  display: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid var(--border-strong);
-  align-items: center;
-  justify-content: center;
-}
-
-.nav__mobile-menu {
-  display: none;
-  gap: 4px;
-  padding: 20px 0 12px;
-  border-top: 1px solid var(--border);
-  margin-top: 16px;
-}
-.nav__mobile-menu.is-open {
-  display: grid;
-}
-.nav__mobile-menu a {
-  display: block;
-  padding: 14px 18px;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--ink-muted);
-  border-radius: var(--r-sm);
-  transition: color 0.25s;
-}
-.nav__mobile-menu a:hover,
-.nav__mobile-menu a.nav__link--active { color: var(--aqua); }
 
 .hero {
   position: relative;
@@ -1119,7 +1090,6 @@ p { margin: 0; text-wrap: pretty; }
 /* ===== tablet ===== */
 @media (max-width: 1080px) {
   .nav__links { display: none; }
-  .nav__mobile-toggle { display: inline-grid; }
   .feature-grid { grid-template-columns: 1fr; gap: 48px; }
   .testimonial-rail { grid-template-columns: repeat(2, 1fr); }
   .footer__grid { grid-template-columns: 1fr 1fr; gap: 36px; }
