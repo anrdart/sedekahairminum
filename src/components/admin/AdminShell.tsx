@@ -10,13 +10,11 @@ import {
   BreadcrumbPage, BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/sonner';
-// Button is used by RebuildButton below.
 import { toast } from 'sonner';
 import { Icon } from './icon';
 import { NAV_SECTIONS, ROUTE_LABELS, type NavItem } from './nav.config';
@@ -64,7 +62,7 @@ export default function AdminShell({ currentPath, user, role, children }: Props)
   );
 
   const trail = breadcrumbTrail(currentPath);
-  const initials = (user.fullName || user.email || 'A').slice(0, 2).toUpperCase();
+  const [showLogout, setShowLogout] = React.useState(false);
 
   async function handleLogout() {
     const supabase = createSupabaseBrowser();
@@ -146,33 +144,33 @@ export default function AdminShell({ currentPath, user, role, children }: Props)
 
           <div className="ml-auto flex items-center gap-2">
             <RebuildButton role={role} />
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                className="flex items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label="Menu pengguna"
-              >
-                <Avatar className="size-7">
-                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel className="flex flex-col">
-                  <span className="font-medium">{user.fullName || 'Admin'}</span>
-                  <span className="text-xs text-muted-foreground">{user.email}</span>
-                  <span className="mt-1 text-xs capitalize text-primary">{role}</span>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <Icon name="log-out" className="size-4" />
-                  Keluar
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <span className="hidden text-xs text-muted-foreground sm:inline">
+              {user.fullName || user.email}
+              <span className="ml-1 capitalize text-primary">({role})</span>
+            </span>
+            <Button variant="ghost" size="sm" onClick={() => setShowLogout(true)}>
+              <Icon name="log-out" />
+              <span className="hidden sm:inline">Keluar</span>
+            </Button>
           </div>
         </header>
 
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </SidebarInset>
+      <AlertDialog open={showLogout} onOpenChange={setShowLogout}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Keluar dari dashboard?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Anda akan keluar dari akun {user.email}. Pastikan semua perubahan sudah tersimpan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout}>Ya, keluar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Toaster position="top-right" richColors />
     </SidebarProvider>
   );
