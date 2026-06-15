@@ -17,6 +17,7 @@ import { Icon } from '../icon';
 import { toSlug } from '@/lib/slug';
 import { uploadMedia } from '@/lib/upload';
 import type { ArticleStatus, Category, Tag } from '@/lib/supabase/types';
+import SeoAnalyzer from './SeoAnalyzer';
 
 export interface ArticleInitial {
   id: string | null;
@@ -55,12 +56,16 @@ export default function ArticleForm({ initial, categories, tags }: Props) {
   const [metaTitle, setMetaTitle] = React.useState(initial.meta_title);
   const [metaDesc, setMetaDesc] = React.useState(initial.meta_description);
   const [saving, setSaving] = React.useState(false);
+  const [focusKeyword, setFocusKeyword] = React.useState('');
+  const [contentText, setContentText] = React.useState('');
+  const [contentHtml, setContentHtml] = React.useState('');
 
   const editorState = React.useRef<{ json: JSONContent | null; html: string; text: string }>({
     json: initial.content,
     html: '',
     text: '',
   });
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const coverInputRef = React.useRef<HTMLInputElement>(null);
 
   function onTitleChange(value: string) {
@@ -166,6 +171,11 @@ export default function ArticleForm({ initial, categories, tags }: Props) {
             initialContent={initial.content}
             onChange={(json, html, text) => {
               editorState.current = { json, html, text };
+              if (debounceRef.current) clearTimeout(debounceRef.current);
+              debounceRef.current = setTimeout(() => {
+                setContentText(text);
+                setContentHtml(html);
+              }, 500);
             }}
           />
         </div>
@@ -306,6 +316,19 @@ export default function ArticleForm({ initial, categories, tags }: Props) {
               </Tabs>
             </CardContent>
           </Card>
+
+          <SeoAnalyzer
+            title={title}
+            slug={slug}
+            metaTitle={metaTitle}
+            metaDesc={metaDesc}
+            excerpt={excerpt}
+            contentText={contentText}
+            contentHtml={contentHtml}
+            hasCover={Boolean(cover)}
+            focusKeyword={focusKeyword}
+            onFocusKeywordChange={setFocusKeyword}
+          />
         </div>
       </div>
       <Toaster position="top-right" richColors />

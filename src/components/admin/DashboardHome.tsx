@@ -1,7 +1,13 @@
+import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Icon } from './icon';
 import KeepAliveWidget from './KeepAliveWidget';
 import ActivityFeed from './ActivityFeed';
+import { createSupabaseBrowser } from '@/lib/supabase/browser';
 import type { ActivityEntry } from '@/lib/supabase/types';
 
 interface Props {
@@ -18,8 +24,49 @@ const STAT_CARDS: { key: string; label: string; icon: string; href: string }[] =
 ];
 
 export default function DashboardHome({ recent, lastHeartbeat, counts }: Props) {
+  const [showUpdate, setShowUpdate] = React.useState(false);
+  const latestIdRef = React.useRef<string | null>(recent[0]?.id ?? null);
+
+  React.useEffect(() => {
+    const supabase = createSupabaseBrowser();
+    let active = true;
+    const check = async () => {
+      const { data } = await supabase
+        .from('activity_log')
+        .select('id')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (!active) return;
+      const newest = (data as any)?.[0]?.id;
+      if (newest && latestIdRef.current && newest !== latestIdRef.current) {
+        setShowUpdate(true);
+      }
+    };
+    const handle = setInterval(check, 30_000);
+    return () => { active = false; clearInterval(handle); };
+  }, []);
+
+  function handleRefresh() {
+    setShowUpdate(false);
+    window.location.reload();
+  }
+
   return (
     <div className="space-y-6">
+      <AlertDialog open={showUpdate} onOpenChange={setShowUpdate}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ada Update pada Dashboard</AlertDialogTitle>
+            <AlertDialogDescription>
+              Data dashboard sudah berubah. Muat ulang untuk melihat perubahan terbaru?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Nanti</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRefresh}>Ya, refresh</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">Ringkasan konten dan status sistem.</p>
