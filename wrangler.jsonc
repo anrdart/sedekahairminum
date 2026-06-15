@@ -3,6 +3,7 @@
   // Build first with `bun run build`, then `wrangler deploy`.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "sedekahairminum",
+  "account_id": "7f5c79c19bc6cb7cbda4500d1e5b615e",
   "compatibility_date": "2025-05-01",
   // Required: @supabase/* pull in Node builtins (stream, events, crypto).
   "compatibility_flags": ["nodejs_compat"],
@@ -20,7 +21,7 @@
   // binding must exist or SSR throws "Invalid binding `SESSION`". Create a KV
   // namespace once with `wrangler kv namespace create SESSION` and paste its id.
   "kv_namespaces": [
-    { "binding": "SESSION", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }
+    { "binding": "SESSION", "id": "3488079613e04d18855c56b1c04e3c95" }
   ],
   // Public (build-inlined) values. Safe to commit — anon key is RLS-guarded.
   // Fill these after creating your Supabase project. Secrets go via
