@@ -30,8 +30,8 @@ export default function SettingsForm({ initial }: { initial: SettingsMap }) {
   async function save() {
     setSaving(true);
     const [r1, r2] = await Promise.all([
-      supabase.from('settings').update({ value: contact as never }).eq('key', 'contact'),
-      supabase.from('settings').update({ value: social as never }).eq('key', 'social'),
+      supabase.from('settings').update({ value: contact } as never).eq('key', 'contact'),
+      supabase.from('settings').update({ value: social } as never).eq('key', 'social'),
     ]);
     if (r1.error || r2.error) toast.error('Gagal menyimpan');
     else toast.success('Pengaturan disimpan');

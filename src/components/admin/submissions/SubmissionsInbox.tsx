@@ -93,7 +93,7 @@ export default function SubmissionsInbox({ initial }: { initial: ContactSubmissi
               <div className="rounded-md border bg-muted/30 p-3 text-sm whitespace-pre-wrap">{selected.pesan}</div>
               <div className="flex items-center gap-3">
                 <Label className="text-xs text-muted-foreground">Status:</Label>
-                <Select value={selected.status} onValueChange={(v) => updateStatus(selected.id, v)}>
+                <Select value={selected.status} onValueChange={(v: string | null) => { if (v) updateStatus(selected.id, v); }}>
                   <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {Object.entries(statusMap).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}

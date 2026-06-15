@@ -1,0 +1,198 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { getArticleBySlug, getRelatedArticles } from '@/lib/supabase/queries/articles';
+
+const { slug } = Astro.params;
+const article = await getArticleBySlug(Astro.locals.supabase, slug!);
+if (!article) return Astro.redirect('/404');
+
+// Fire-and-forget view count bump.
+(Astro.locals.supabase.rpc as any)('increment_view', { p_slug: slug! }).then(() => {});
+
+const related = await getRelatedArticles(Astro.locals.supabase, {
+  categoryId: article.category_id,
+  excludeId: article.id,
+});
+
+const siteUrl = 'https://sedekahairminum.com';
+const ogImage = article.og_image || article.cover_image || `${siteUrl}/assets/hero/DSC00529_4_11zon.webp`;
+const metaTitle = article.meta_title || article.title;
+const metaDesc = article.meta_description || article.excerpt || '';
+
+function formatDate(iso: string | null): string {
+  if (!iso) return '';
+  return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(iso));
+}
+
+const authorName = (article as any).author?.full_name || 'Sedekah Air Minum';
+const categoryName = (article as any).category?.name;
+const tags = ((article as any).article_tags ?? []).map((at: any) => at.tag);
+---
+
+<Layout
+  title={`${metaTitle} — Sedekah Air Minum`}
+  description={metaDesc}
+  ogImage={ogImage}
+>
+  <Nav />
+  <main id="main-content">
+    {/* Article header */}
+    <article class="article">
+      <header class="article__header">
+        <div class="container container--narrow">
+          {categoryName && <span class="eyebrow">{categoryName}</span>}
+          <h1 class="article__title">{article.title}</h1>
+          <div class="article__meta">
+            <span>{authorName}</span>
+            <span>·</span>
+            <time datetime={article.published_at ?? ''}>{formatDate(article.published_at)}</time>
+            {article.reading_time && (
+              <>
+                <span>·</span>
+                <span>{article.reading_time} menit baca</span>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {article.cover_image && (
+        <div class="article__cover container">
+          <img src={article.cover_image} alt={article.title} />
+        </div>
+      )}
+
+      <div class="article__body container container--narrow" set:html={article.content_html ?? ''} />
+
+      {tags.length > 0 && (
+        <div class="article__tags container container--narrow">
+          {tags.map((t: any) => t && (
+            <span class="article__tag">{t.name}</span>
+          ))}
+        </div>
+      )}
+    </article>
+
+    {/* Related articles */}
+    {related.length > 0 && (
+      <section class="section">
+        <div class="container">
+          <h2 style="font-size:clamp(24px,3vw,32px);margin-bottom:32px">Artikel Terkait</h2>
+          <div class="blog-grid">
+            {related.map((a) => (
+              <BlogCard
+                slug={a.slug}
+                title={a.title}
+                cover_image={a.cover_image}
+                published_at={a.published_at}
+                reading_time={a.reading_time}
+                category={a.category}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    {/* JSON-LD Article schema */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": article.title,
+      "image": ogImage,
+      "datePublished": article.published_at,
+      "dateModified": article.updated_at,
+      "author": { "@type": "Person", "name": authorName },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Yayasan Gerakan Wakaf Sumur",
+        "logo": { "@type": "ImageObject", "url": `${siteUrl}/assets/logo.webp` },
+      },
+      "mainEntityOfPage": { "@type": "WebPage", "@id": `${siteUrl}/artikel/${slug}` },
+      "description": metaDesc,
+    })} />
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .article__header {
+    padding-top: 180px;
+    padding-bottom: 48px;
+    text-align: center;
+  }
+  .article__title {
+    font-family: var(--font-display);
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 16px 0 20px;
+  }
+  .article__meta {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+  .article__cover {
+    margin-bottom: 48px;
+  }
+  .article__cover img {
+    width: 100%;
+    max-height: 520px;
+    object-fit: cover;
+    border-radius: var(--r-lg);
+  }
+  /* Article prose — Twilight Water theme */
+  .article__body {
+    font-size: clamp(16px, 1.15vw, 18px);
+    line-height: 1.75;
+    color: var(--ink);
+  }
+  .article__body :global(> * + *) { margin-top: 1em; }
+  .article__body :global(h2) { font-family: var(--font-display); font-size: clamp(24px, 3vw, 32px); font-weight: 400; margin-top: 2em; color: var(--ink-strong); }
+  .article__body :global(h3) { font-family: var(--font-display); font-size: clamp(20px, 2vw, 24px); font-weight: 400; margin-top: 1.6em; color: var(--ink-strong); }
+  .article__body :global(a) { color: var(--aqua); text-decoration: underline; text-underline-offset: 3px; }
+  .article__body :global(a:hover) { color: var(--aqua-soft); }
+  .article__body :global(blockquote) { border-left: 3px solid var(--aqua); padding-left: 1.2em; color: var(--ink-muted); font-style: italic; }
+  .article__body :global(pre) { background: #0d1117; color: #e6edf3; padding: 1em 1.2em; border-radius: var(--r-sm); overflow-x: auto; font-size: 0.875em; }
+  .article__body :global(code) { background: var(--surface-2); padding: 0.15em 0.35em; border-radius: 4px; font-size: 0.875em; font-family: var(--font-mono); }
+  .article__body :global(pre code) { background: none; padding: 0; }
+  .article__body :global(img) { border-radius: var(--r-md); max-width: 100%; height: auto; }
+  .article__body :global(ul) { list-style: disc; padding-left: 1.4em; }
+  .article__body :global(ol) { list-style: decimal; padding-left: 1.4em; }
+  .article__body :global(hr) { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
+  .article__body :global(table) { width: 100%; border-collapse: collapse; margin: 1.4em 0; }
+  .article__body :global(th), .article__body :global(td) { border: 1px solid var(--border); padding: 0.5em 0.75em; text-align: left; }
+  .article__body :global(th) { background: var(--surface-2); font-weight: 600; }
+  .article__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .article__tag {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    color: var(--ink-muted);
+  }
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+  }
+  @media (max-width: 640px) {
+    .article__header { padding-top: 140px; }
+    .article__title { font-size: clamp(28px, 7vw, 36px); }
+  }
+</style>

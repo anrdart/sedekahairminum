@@ -66,12 +66,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
     let articleId = payload.id ?? null;
 
     if (articleId) {
-      const { error } = await supabase.from('articles').update(row).eq('id', articleId);
+      const { error } = await supabase.from('articles').update(row as never).eq('id', articleId);
       if (error) return slugError(error.message);
     } else {
       const { data, error } = await supabase
         .from('articles')
-        .insert({ ...row, author_id: locals.user.id })
+        .insert({ ...row, author_id: locals.user.id } as never)
         .select('id')
         .single<{ id: string }>();
       if (error) return slugError(error.message);
@@ -79,11 +79,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // Sync tags (delete-all + re-insert is fine for the small counts here).
-    await supabase.from('article_tags').delete().eq('article_id', articleId);
+    await supabase.from('article_tags').delete().eq('article_id', articleId as string);
     if (payload.tag_ids.length) {
       await supabase
         .from('article_tags')
-        .insert(payload.tag_ids.map((tag_id) => ({ article_id: articleId!, tag_id })));
+        .insert(payload.tag_ids.map((tag_id) => ({ article_id: articleId!, tag_id })) as never);
     }
 
     await recordActivity(supabase, {

@@ -31,11 +31,11 @@ export default function TaxonomyManager({
     if (!trimmed) return;
     setBusy(true);
     const slug = toSlug(trimmed);
-    const { data, error } = await supabase
-      .from(table)
+    const { data, error } = await (supabase
+      .from(table) as any)
       .insert({ name: trimmed, slug })
       .select('id,name,slug')
-      .single<Term>();
+      .single() as { data: Term | null; error: any };
     if (error) {
       toast.error(error.message.includes('duplicate') ? 'Slug sudah ada' : 'Gagal menambah');
     } else if (data) {
@@ -47,7 +47,7 @@ export default function TaxonomyManager({
   }
 
   async function remove(id: string) {
-    const { error } = await supabase.from(table).delete().eq('id', id);
+    const { error } = await (supabase.from(table) as any).delete().eq('id', id);
     if (error) toast.error('Gagal menghapus');
     else {
       setTerms((p) => p.filter((t) => t.id !== id));

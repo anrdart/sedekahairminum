@@ -41,7 +41,7 @@ export default function ResourceList({ resourceSlug, initial }: Props) {
   async function confirmDelete() {
     if (!deleteId) return;
     const supabase = createSupabaseBrowser();
-    const { error } = await supabase.from(def.table as string).delete().eq('id', deleteId);
+    const { error } = await (supabase.from(def.table as string) as any).delete().eq('id', deleteId);
     if (error) { toast.error('Gagal menghapus'); setDeleteId(null); return; }
     await recordActivity(supabase, { action: 'delete', entityType: def.table, entityId: deleteId, summary: `menghapus ${def.label}` });
     setRows((prev) => prev.filter((r) => r.id !== deleteId));

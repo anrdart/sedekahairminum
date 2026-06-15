@@ -64,7 +64,7 @@ export default function ActivityMonitor({ initial }: { initial: ActivityEntry[] 
       </div>
 
       <div className="flex gap-3">
-        <Select value={filter} onValueChange={changeFilter}>
+        <Select value={filter} onValueChange={(v: string | null) => changeFilter(v ?? 'all')}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             {ACTIONS.map((a) => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}

@@ -49,12 +49,12 @@ export default function ResourceForm({ resourceSlug, initial }: Props) {
     row.sort_order = values.sort_order ?? 0;
 
     if (isEdit) {
-      const { error } = await supabase.from(def.table as string).update(row).eq('id', initial!.id as string);
+      const { error } = await (supabase.from(def.table as string) as any).update(row).eq('id', initial!.id as string);
       if (error) { toast.error(error.message); setSaving(false); return; }
       await recordActivity(supabase, { action: 'update', entityType: def.table, entityId: initial!.id as string, summary: `memperbarui ${def.label}` });
       toast.success('Diperbarui');
     } else {
-      const { error } = await supabase.from(def.table as string).insert(row);
+      const { error } = await (supabase.from(def.table as string) as any).insert(row);
       if (error) { toast.error(error.message); setSaving(false); return; }
       await recordActivity(supabase, { action: 'create', entityType: def.table, summary: `menambah ${def.label}` });
       toast.success('Ditambahkan');

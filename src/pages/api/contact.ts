@@ -39,7 +39,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     honeypot: payload.website || null,
     ip,
     user_agent: ua,
-  });
+  } as never);
 
   if (error) return serverError(error.message);
   return ok();

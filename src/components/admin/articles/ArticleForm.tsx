@@ -177,7 +177,7 @@ export default function ArticleForm({ initial, categories, tags }: Props) {
             <CardContent className="space-y-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">Status</Label>
-                <Select value={status} onValueChange={(v) => setStatus(v as ArticleStatus)}>
+                <Select value={status} onValueChange={(v: string | null) => { if (v) setStatus(v as ArticleStatus); }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="draft">Draf</SelectItem>
@@ -239,7 +239,7 @@ export default function ArticleForm({ initial, categories, tags }: Props) {
             <CardContent className="space-y-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">Kategori</Label>
-                <Select value={categoryId} onValueChange={setCategoryId}>
+                <Select value={categoryId} onValueChange={(v: string | null) => setCategoryId(v ?? NO_CATEGORY)}>
                   <SelectTrigger><SelectValue placeholder="Pilih kategori" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NO_CATEGORY}>Tanpa kategori</SelectItem>

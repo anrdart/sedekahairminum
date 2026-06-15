@@ -63,7 +63,11 @@ export async function getArticleBySlug(client: DB, slug: string) {
     .eq('status', 'published')
     .lte('published_at', nowIso())
     .maybeSingle();
-  return data;
+  return data as (Database['public']['Tables']['articles']['Row'] & {
+    category: { name: string; slug: string } | null;
+    article_tags: { tag: { name: string; slug: string } | null }[];
+    author: { full_name: string; avatar_url: string | null } | null;
+  }) | null;
 }
 
 export async function getRelatedArticles(
@@ -83,7 +87,15 @@ export async function getRelatedArticles(
   return (data ?? []) as unknown as ArticleCard[];
 }
 
-export async function getAllPublishedForFeed(client: DB, limit = 50) {
+export interface FeedArticle {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  published_at: string | null;
+  updated_at: string;
+}
+
+export async function getAllPublishedForFeed(client: DB, limit = 50): Promise<FeedArticle[]> {
   const { data } = await client
     .from('articles')
     .select('slug,title,excerpt,published_at,updated_at')
@@ -91,5 +103,5 @@ export async function getAllPublishedForFeed(client: DB, limit = 50) {
     .lte('published_at', nowIso())
     .order('published_at', { ascending: false })
     .limit(limit);
-  return data ?? [];
+  return (data ?? []) as unknown as FeedArticle[];
 }

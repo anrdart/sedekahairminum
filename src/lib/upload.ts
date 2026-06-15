@@ -58,7 +58,7 @@ export async function uploadMedia(file: File, bucket = 'media'): Promise<UploadR
     size: file.size,
     width,
     height,
-  });
+  } as never);
 
   return { path, publicUrl: pub.publicUrl, bucket };
 }

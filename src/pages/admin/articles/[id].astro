@@ -7,10 +7,10 @@ const { id } = Astro.params;
 const supabase = Astro.locals.supabase;
 
 const [{ data: article }, { data: categories }, { data: tags }, { data: artTags }] = await Promise.all([
-  supabase.from('articles').select('*').eq('id', id!).maybeSingle(),
-  supabase.from('categories').select('*').order('name'),
-  supabase.from('tags').select('*').order('name'),
-  supabase.from('article_tags').select('tag_id').eq('article_id', id!),
+  supabase.from('articles').select('*').eq('id', id!).maybeSingle() as any,
+  supabase.from('categories').select('*').order('name') as any,
+  supabase.from('tags').select('*').order('name') as any,
+  supabase.from('article_tags').select('tag_id').eq('article_id', id!) as any,
 ]);
 
 if (!article) return Astro.redirect('/admin/articles');
@@ -28,7 +28,7 @@ const initial: ArticleInitial = {
   meta_title: article.meta_title ?? '',
   meta_description: article.meta_description ?? '',
   og_image: article.og_image ?? '',
-  tag_ids: (artTags ?? []).map((t) => t.tag_id),
+  tag_ids: (artTags ?? []).map((t: any) => t.tag_id),
 };
 ---
 <AdminLayout title={`Edit: ${article.title}`}>
