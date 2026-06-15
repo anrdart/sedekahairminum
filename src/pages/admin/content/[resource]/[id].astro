@@ -1,0 +1,21 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ResourceForm from '@/components/admin/resources/ResourceForm';
+import { RESOURCES } from '@/components/admin/resources.config';
+
+const slug = Astro.params.resource!;
+const itemId = Astro.params.id!;
+const def = RESOURCES[slug];
+if (!def) return Astro.redirect('/admin');
+
+const { data: item } = await Astro.locals.supabase
+  .from(def.table as string)
+  .select('*')
+  .eq('id', itemId)
+  .maybeSingle();
+if (!item) return Astro.redirect(`/admin/content/${slug}`);
+---
+<AdminLayout title={`Edit ${def.label}`}>
+  <ResourceForm client:load resourceSlug={slug} initial={item as Record<string, unknown>} />
+</AdminLayout>
