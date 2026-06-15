@@ -1,0 +1,10 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import TaxonomyManager from '@/components/admin/TaxonomyManager';
+
+const { data } = await Astro.locals.supabase.from('tags').select('id,name,slug').order('name');
+---
+<AdminLayout title="Tag">
+  <TaxonomyManager client:load table="tags" title="Tag" initial={data ?? []} />
+</AdminLayout>

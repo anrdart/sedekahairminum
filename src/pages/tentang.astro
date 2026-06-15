@@ -2,27 +2,14 @@
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import { supabaseStatic } from '@/lib/supabase/static';
+import { getValues, getTeam, getMisi } from '@/lib/supabase/queries/marketing';
 
-const values = [
-  { n: '01', title: 'Amanah', desc: 'Setiap rupiah donasi tercatat, terlapor, dan tersalurkan dengan dokumentasi yang dapat diverifikasi.' },
-  { n: '02', title: 'Transparan', desc: 'Sistem tracking real-time, laporan triwulan terbuka, dan keuangan diaudit setiap tahun.' },
-  { n: '03', title: 'Profesional', desc: 'Standar kualitas air, sistem operasi armada, dan layanan donatur dikelola dengan disiplin tinggi.' },
-  { n: '04', title: 'Berkah', desc: 'Kami percaya setiap tegukan air yang sampai pada hamba Allah adalah jariyah yang terus mengalir.' },
-];
-
-
-const team = [
-  { role: 'Founder & Direktur', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=founder&backgroundColor=b6e3f4' },
-  { role: 'Operasional Armada', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=operasional&backgroundColor=c0aede' },
-  { role: 'Donor Relations', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=donor&backgroundColor=d1d4f9' },
-];
-
-const misi = [
-  'Menyalurkan air minum layak konsumsi ke 1.000+ lembaga penerima manfaat per tahun.',
-  'Membangun sistem distribusi yang transparan, terdokumentasi, dan dapat diverifikasi setiap donatur.',
-  'Mengedukasi masyarakat tentang keutamaan sedekah air minum sebagai sedekah jariyah.',
-  'Mengembangkan armada dan tim agar menjangkau seluruh pelosok Indonesia.',
-];
+const [values, team, misi] = await Promise.all([
+  getValues(supabaseStatic),
+  getTeam(supabaseStatic),
+  getMisi(supabaseStatic),
+]);
 ---
 
 <Layout
@@ -58,7 +45,7 @@ const misi = [
                   <span style="width:24px;height:24px;border-radius:50%;background:color-mix(in srgb, var(--aqua) 14%, transparent);color:var(--aqua);display:grid;place-items:center;margin-top:1px;flex-shrink:0">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                   </span>
-                  <span>{m}</span>
+                  <span>{m.body}</span>
                 </li>
               ))}
             </ul>
@@ -81,7 +68,7 @@ const misi = [
             <div class="value">
               <span class="value__num">&mdash; {v.n}</span>
               <h3 class="value__title">{v.title}</h3>
-              <p class="value__desc">{v.desc}</p>
+              <p class="value__desc">{v.descr}</p>
             </div>
           ))}
         </div>

@@ -1,0 +1,205 @@
+import * as React from 'react';
+import {
+  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
+  SidebarGroupLabel, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton,
+  SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarRail,
+} from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
+import {
+  Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList,
+  BreadcrumbPage, BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Toaster } from '@/components/ui/sonner';
+// Button is used by RebuildButton below.
+import { toast } from 'sonner';
+import { Icon } from './icon';
+import { NAV_SECTIONS, ROUTE_LABELS, type NavItem } from './nav.config';
+import { createSupabaseBrowser } from '@/lib/supabase/browser';
+import type { Role } from '@/lib/supabase/types';
+
+interface Props {
+  currentPath: string;
+  user: { email: string | null; fullName: string };
+  role: Role;
+  children?: React.ReactNode;
+}
+
+function isActive(item: NavItem, path: string): boolean {
+  if (item.match === 'exact') return path === item.href;
+  return path === item.href || path.startsWith(item.href + '/');
+}
+
+function breadcrumbTrail(path: string): { label: string; href: string }[] {
+  if (path === '/admin') return [{ label: 'Dashboard', href: '/admin' }];
+  const trail: { label: string; href: string }[] = [{ label: 'Dashboard', href: '/admin' }];
+  // Best-effort: map known section route to its label.
+  const known = Object.keys(ROUTE_LABELS)
+    .filter((href) => href !== '/admin' && path.startsWith(href))
+    .sort((a, b) => b.length - a.length)[0];
+  if (known) {
+    trail.push({ label: ROUTE_LABELS[known], href: known });
+    if (path !== known) {
+      const tail = path.slice(known.length + 1).split('/')[0];
+      if (tail === 'new') trail.push({ label: 'Baru', href: path });
+      else if (tail) trail.push({ label: 'Edit', href: path });
+    }
+  }
+  return trail;
+}
+
+export default function AdminShell({ currentPath, user, role, children }: Props) {
+  const visibleSections = React.useMemo(
+    () =>
+      NAV_SECTIONS.map((s) => ({
+        ...s,
+        items: s.items.filter((i) => !i.adminOnly || role === 'owner' || role === 'admin'),
+      })).filter((s) => s.items.length > 0),
+    [role],
+  );
+
+  const trail = breadcrumbTrail(currentPath);
+  const initials = (user.fullName || user.email || 'A').slice(0, 2).toUpperCase();
+
+  async function handleLogout() {
+    const supabase = createSupabaseBrowser();
+    await supabase.auth.signOut();
+    toast.success('Berhasil keluar');
+    window.location.assign('/admin/login');
+  }
+
+  return (
+    <SidebarProvider>
+      <Sidebar collapsible="icon">
+        <SidebarHeader>
+          <div className="flex items-center gap-2 px-2 py-1.5">
+            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Icon name="droplet" className="size-4" />
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+              <span className="truncate font-semibold">Sedekah Air Minum</span>
+              <span className="truncate text-xs text-muted-foreground">Panel Admin</span>
+            </div>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          {visibleSections.map((section) => (
+            <SidebarGroup key={section.label}>
+              <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {section.items.map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        isActive={isActive(item, currentPath)}
+                        tooltip={item.label}
+                        render={<a href={item.href} />}
+                      >
+                        <Icon name={item.icon} />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Lihat situs" render={<a href="/" target="_blank" rel="noreferrer" />}>
+                <Icon name="external-link" />
+                <span>Lihat situs</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+
+      <SidebarInset>
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              {trail.map((crumb, i) => (
+                <React.Fragment key={crumb.href}>
+                  {i > 0 && <BreadcrumbSeparator />}
+                  <BreadcrumbItem>
+                    {i === trail.length - 1 ? (
+                      <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                    ) : (
+                      <BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
+                    )}
+                  </BreadcrumbItem>
+                </React.Fragment>
+              ))}
+            </BreadcrumbList>
+          </Breadcrumb>
+
+          <div className="ml-auto flex items-center gap-2">
+            <RebuildButton role={role} />
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="flex items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Menu pengguna"
+              >
+                <Avatar className="size-7">
+                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="flex flex-col">
+                  <span className="font-medium">{user.fullName || 'Admin'}</span>
+                  <span className="text-xs text-muted-foreground">{user.email}</span>
+                  <span className="mt-1 text-xs capitalize text-primary">{role}</span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <Icon name="log-out" className="size-4" />
+                  Keluar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        <main className="flex-1 p-4 md:p-6">{children}</main>
+      </SidebarInset>
+      <Toaster position="top-right" richColors />
+    </SidebarProvider>
+  );
+}
+
+function RebuildButton({ role }: { role: Role }) {
+  const [loading, setLoading] = React.useState(false);
+  if (role !== 'owner' && role !== 'admin') return null;
+
+  async function rebuild() {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/revalidate', { method: 'POST' });
+      const body = (await res.json()) as { ok: boolean; error?: string };
+      if (body.ok) toast.success('Build situs dipicu — perubahan tampil dalam ~1–2 menit');
+      else toast.error(body.error || 'Gagal memicu build');
+    } catch {
+      toast.error('Gagal memicu build');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Button variant="outline" size="sm" onClick={rebuild} disabled={loading}>
+      <Icon name={loading ? 'loader-circle' : 'rocket'} className={loading ? 'animate-spin' : ''} />
+      Publish ke situs
+    </Button>
+  );
+}

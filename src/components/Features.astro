@@ -1,19 +1,9 @@
 ---
-const features = [
-  { n: '01', title: 'Air Minum Berkualitas', desc: 'Air RO bersih, layak konsumsi, melalui sistem filtrasi multi-stage. Diuji berkala untuk memastikan setiap tetes aman bagi penerima manfaat.' },
-  { n: '02', title: 'Armada Berjalan', desc: 'Mobil karoseri custom dengan tangki stainless steel, mesin filtrasi onboard, dan 4 keran pengisian. Air bisa diambil langsung di lokasi.' },
-  { n: '03', title: 'Jangkauan Luas', desc: 'Menjangkau masjid, pesantren, dan sekolah di pelosok yang sulit dijangkau distribusi air komersial. Dari Jawa hingga Indonesia timur.' },
-  { n: '04', title: 'Transparan & Tercatat', desc: 'Setiap distribusi air minum dilakukan secara transparan dan terdokumentasi. Donatur dapat memantau realisasi penyaluran melalui laporan update distribusi yang kami sediakan.' },
-];
-
-const programSlides = [
-  { src: '/assets/program/trqf9zfd6hz97ngvn5jd.webp', cap: 'Penyaluran galon air bersih langsung di lokasi penerima manfaat.', meta: 'Distribusi · Masjid' },
-  { src: '/assets/program/arbqx8w3ey4ojtazvkb5.webp', cap: 'Galon Gerakan Wakaf Sumur siap disalurkan ke pesantren.', meta: 'Persiapan · Galon air' },
-  { src: '/assets/program/b3uh9laknqa7nekbljne.webp', cap: 'Koordinasi tim relawan di lapangan sebelum distribusi.', meta: 'Tim relawan' },
-  { src: '/assets/program/bu2p28ll3mlw8ogacirr.webp', cap: 'Air bersih sampai ke lembaga pendidikan Islam.', meta: 'Penyaluran · Sekolah' },
-  { src: '/assets/program/jby1yhbs5gzsuyn1edx0.webp', cap: 'Dokumentasi penyerahan bantuan air minum.', meta: 'Serah terima' },
-  { src: '/assets/program/zmihg9bm37tjuj4dg5nr.webp', cap: 'Relawan bersama penerima manfaat di lokasi.', meta: 'Silaturahmi' },
-];
+interface Props {
+  features: { n: string; title: string; descr: string }[];
+  programSlides: { src: string; cap: string | null; meta: string | null }[];
+}
+const { features, programSlides } = Astro.props;
 ---
 
 <section class="section">
@@ -35,7 +25,7 @@ const programSlides = [
             <span class="feature__num">{f.n}</span>
             <div>
               <h3 class="feature__title">{f.title}</h3>
-              <p class="feature__desc">{f.desc}</p>
+              <p class="feature__desc">{f.descr}</p>
             </div>
             <span class="feature__arrow">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
@@ -72,8 +62,8 @@ const programSlides = [
         </div>
 
         <div class="feature-media__caption" style="position:absolute;left:24px;right:24px;bottom:24px;z-index:3;color:#fff;font-family:var(--font-display);font-style:italic;font-size:14px;line-height:1.5">
-          <span id="program-cap">"{programSlides[0].cap}"</span><br/>
-          <span id="program-meta" style="opacity:0.7;font-style:normal;font-size:12px;letter-spacing:0.08em;text-transform:uppercase">{programSlides[0].meta}</span>
+          <span id="program-cap">"{programSlides[0]?.cap ?? ''}"</span><br/>
+          <span id="program-meta" style="opacity:0.7;font-style:normal;font-size:12px;letter-spacing:0.08em;text-transform:uppercase">{programSlides[0]?.meta ?? ''}</span>
         </div>
       </div>
     </div>

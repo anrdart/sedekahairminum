@@ -1,13 +1,6 @@
 ---
-const slides = [
-  { src: '/assets/hero/DSC00481_5_11zon.webp', cap: 'Armada Sedekah Air Minum — siap melayani umat di pelosok negeri' },
-  { src: '/assets/hero/DSC00529_4_11zon.webp', cap: 'Body karoseri dengan branding Gerakan Wakaf Sumur' },
-  { src: '/assets/hero/DSC00489_7_11zon.webp', cap: 'Empat keran dispenser stainless steel siap mengalirkan air bersih' },
-  { src: '/assets/hero/DSC00549_3_11zon.webp', cap: 'Armada keliling menjangkau pelosok — sedekahairminum.com' },
-  { src: '/assets/hero/DSC00554_2_11zon.webp', cap: 'Setiap tetesan tercatat & tersalurkan dengan transparan' },
-  { src: '/assets/hero/DSC00570_1_11zon.webp', cap: 'Setiap tegukan, ada pahala yang terus mengalir' },
-  { src: '/assets/hero/DSC00484_6_11zon.webp', cap: 'Sistem filtrasi RO terbuka — air bersih langsung dari armada' },
-];
+interface Props { slides: { src: string; cap: string | null }[] }
+const { slides } = Astro.props;
 ---
 
 <section class="hero" id="hero">
@@ -43,7 +36,7 @@ const slides = [
   </div>
 
   <div class="hero__indicator" id="hero-indicator">
-    <span class="hero__counter" id="hero-counter">01 <span style="color:var(--ink-dim)">/ 07</span></span>
+    <span class="hero__counter" id="hero-counter">01 <span style="color:var(--ink-dim)">/ {String(slides.length).padStart(2, '0')}</span></span>
     <div class="hero__dots" id="hero-dots">
       {slides.map((_, i) => (
         <button
@@ -53,7 +46,7 @@ const slides = [
         ></button>
       ))}
     </div>
-    <div class="hero__caption" id="hero-caption">"{slides[0].cap}"</div>
+    <div class="hero__caption" id="hero-caption">"{slides[0]?.cap ?? ''}"</div>
   </div>
 
   <div class="hero__scroll">Scroll</div>

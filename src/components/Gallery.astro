@@ -1,10 +1,6 @@
 ---
-const slides = [
-  { bg: '/assets/galeri/serah-terima.webp', title: 'Penandatanganan Surat Serah Terima', meta: 'Distribusi Air Minum' },
-  { bg: '/assets/galeri/pengisian-galon.webp', title: 'Pembersihan dan Pengisian Galon', meta: 'Proses persiapan distribusi' },
-  { bg: '/assets/galeri/penyerahan-bantuan.webp', title: 'Penyerahan Bantuan Air Minum', meta: 'Distribusi ke penerima manfaat' },
-  { bg: '/assets/galeri/foto-bersama.webp', title: 'Foto Bersama Penerima Manfaat', meta: 'Dokumentasi penerima air minum' },
-];
+interface Props { slides: { bg: string; title: string; meta: string | null }[] }
+const { slides } = Astro.props;
 ---
 
 <section class="section">
@@ -32,8 +28,8 @@ const slides = [
             </div>
           ))}
           <div class="gallery__cap">
-            <div class="gallery__cap-title" id="gallery-title">{slides[0].title}</div>
-            <div class="gallery__cap-meta" id="gallery-meta">{slides[0].meta}</div>
+            <div class="gallery__cap-title" id="gallery-title">{slides[0]?.title ?? ''}</div>
+            <div class="gallery__cap-meta" id="gallery-meta">{slides[0]?.meta ?? ''}</div>
           </div>
           <div class="gallery__nav">
             <button class="gallery__arrow" id="gallery-prev" aria-label="Foto sebelumnya">

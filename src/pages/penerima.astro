@@ -2,34 +2,13 @@
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
-const stats = [
-  { num: 1, suffix: '', label: 'Kabupaten' },
-  { num: 19, suffix: '', label: 'Lembaga Penerima' },
-  { num: 298, suffix: '', label: 'Galon/Distribusi' },
-  { num: 7, suffix: '', label: 'Kecamatan' },
-];
+import { supabaseStatic } from '@/lib/supabase/static';
+import { getStats, getPenerima } from '@/lib/supabase/queries/marketing';
 
-const penerima = [
-  { name: 'PP An-Nur', type: 'Pesantren', city: 'Karangmojo', province: 'Gunung Kidul', galon: 6 },
-  { name: "PP Fajrussa'adah", type: 'Pesantren', city: 'Wonosari', province: 'Gunung Kidul', galon: 8 },
-  { name: 'PP KI Ageng Wonokusumo', type: 'Pesantren', city: 'Karangmojo', province: 'Gunung Kidul', galon: 6 },
-  { name: 'PP Al-Kholifah', type: 'Pesantren', city: 'Paliyan', province: 'Gunung Kidul', galon: 5 },
-  { name: 'PP Al-Murtadlo', type: 'Pesantren', city: 'Ponjong', province: 'Gunung Kidul', galon: 10 },
-  { name: 'PP Al-Hikmah Gubuk Rubuh', type: 'Pesantren', city: 'Playen', province: 'Gunung Kidul', galon: 8 },
-  { name: "PP Ar-Ruhamaa'", type: 'Pesantren', city: 'Playen', province: 'Gunung Kidul', galon: 10 },
-  { name: 'Pondok Nurul Jamil Al-Jumar', type: 'Pesantren', city: 'Wonosari', province: 'Gunung Kidul', galon: 6 },
-  { name: 'PP Nurulhadi 2', type: 'Pesantren', city: 'Playen', province: 'Gunung Kidul', galon: 2 },
-  { name: 'PP Ash-Shiddiq 2', type: 'Pesantren', city: 'Ngawen', province: 'Gunung Kidul', galon: 8 },
-  { name: 'PP Hidayatul Mubtadiin Kunci', type: 'Pesantren', city: 'Panggang', province: 'Gunung Kidul', galon: 5 },
-  { name: 'PP & Islamic Center Yasma Mulia', type: 'Pesantren', city: 'Wonosari', province: 'Gunung Kidul', galon: 4 },
-  { name: 'PP Roudlotuth Tholabah', type: 'Pesantren', city: 'Paliyan', province: 'Gunung Kidul', galon: 2 },
-  { name: 'PP Kun Solihan', type: 'Pesantren', city: 'Playen', province: 'Gunung Kidul', galon: 6 },
-  { name: 'Yayasan Panti Asuhan Islam', type: 'Yayasan', city: 'Playen', province: 'Gunung Kidul', galon: 14 },
-  { name: 'PP Thoriqul Mukminin', type: 'Pesantren', city: 'Semanu', province: 'Gunung Kidul', galon: 20 },
-  { name: 'PP Baitul Jannah Darussalam', type: 'Pesantren', city: 'Wonosari', province: 'Gunung Kidul', galon: 6 },
-  { name: 'PP Assalafiyah Darussalam', type: 'Pesantren', city: 'Wonosari', province: 'Gunung Kidul', galon: 5 },
-  { name: 'PP Muhammadiyah Al-Mujahidin', type: 'Pesantren', city: 'Playen', province: 'Gunung Kidul', galon: 10 },
-];
+const [stats, penerima] = await Promise.all([
+  getStats(supabaseStatic, 'penerima'),
+  getPenerima(supabaseStatic),
+]);
 
 const totalGalon = penerima.reduce((s, p) => s + p.galon, 0);
 const types = ['Semua', 'Pesantren', 'Yayasan'];

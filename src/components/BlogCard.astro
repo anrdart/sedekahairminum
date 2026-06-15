@@ -1,0 +1,122 @@
+---
+// Blog card using the public Twilight Water theme (NOT shadcn tokens).
+interface Props {
+  slug: string;
+  title: string;
+  excerpt?: string | null;
+  cover_image?: string | null;
+  published_at?: string | null;
+  reading_time?: number | null;
+  category?: { name: string; slug: string } | null;
+}
+const { slug, title, excerpt, cover_image, published_at, reading_time, category } = Astro.props;
+
+function formatDate(iso: string | null | undefined): string {
+  if (!iso) return '';
+  try {
+    return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(iso));
+  } catch { return ''; }
+}
+---
+
+<a href={`/artikel/${slug}`} class="blog-card fade-up" data-slot="blog-card">
+  <div class="blog-card__img">
+    {cover_image ? (
+      <img src={cover_image} alt={title} loading="lazy" />
+    ) : (
+      <div class="blog-card__placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="blog-card__icon">
+          <path d="M12 2C12 2 2 12 2 16c0 3.31 4.03 6 10 6s10-2.69 10-6c0-4-10-14-10-14Z"/>
+        </svg>
+      </div>
+    )}
+  </div>
+  <div class="blog-card__body">
+    {category && <span class="blog-card__cat">{category.name}</span>}
+    <h3 class="blog-card__title">{title}</h3>
+    {excerpt && <p class="blog-card__excerpt">{excerpt}</p>}
+    <div class="blog-card__meta">
+      {published_at && <time datetime={published_at}>{formatDate(published_at)}</time>}
+      {reading_time && <span>{reading_time} menit baca</span>}
+    </div>
+  </div>
+</a>
+
+<style>
+  .blog-card {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: transform 0.4s var(--ease-out), border-color 0.4s;
+  }
+  .blog-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-strong);
+  }
+  .blog-card__img {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--surface-2);
+  }
+  .blog-card__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .blog-card:hover .blog-card__img img {
+    transform: scale(1.04);
+  }
+  .blog-card__placeholder {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: var(--ink-dim);
+  }
+  .blog-card__icon { width: 40px; height: 40px; opacity: 0.4; }
+  .blog-card__body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+  .blog-card__cat {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--aqua);
+  }
+  .blog-card__title {
+    font-family: var(--font-display);
+    font-size: clamp(18px, 1.8vw, 22px);
+    font-weight: 400;
+    color: var(--ink-strong);
+    line-height: 1.2;
+    margin: 0;
+  }
+  .blog-card__excerpt {
+    color: var(--ink-muted);
+    font-size: 14px;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+  }
+  .blog-card__meta {
+    margin-top: auto;
+    padding-top: 8px;
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+</style>

@@ -2,12 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import { supabaseStatic } from '@/lib/supabase/static';
+import { getRekening } from '@/lib/supabase/queries/marketing';
 
-const rekening = [
-  { bank: 'Bank Mandiri', no: '1360020240013', label: 'MANDIRI' },
-  { bank: 'Bank Syariah Indonesia (BSI)', no: '7263493618', label: 'BSI' },
-  { bank: 'Bank BCA', no: '7831221333', label: 'BCA' },
-];
+const rekening = await getRekening(supabaseStatic);
 ---
 
 <Layout
@@ -281,7 +279,6 @@ const rekening = [
 </script>
 
 <script is:inline>
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJde3L1B6syeq_ZTMIoDlcawB0fq_wum3rsWa-YXB6CqOCMAOWoyX16G8st7YHBP7O/exec';
   var WA_NUMBER = '6285319480974';
   var form = document.getElementById('contact-form');
   var btn = document.getElementById('submit-btn');
@@ -290,14 +287,6 @@ const rekening = [
   function buildWaUrl(nama, topik, pesan) {
     var text = "Assalamu'alaikum, saya " + nama + ".\n\nSaya menghubungi terkait: " + topik + ".\n\n" + pesan + "\n\nTerima kasih. Jazakumullahu khairan.";
     return 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(text);
-  }
-
-  function sendToSheet(data, callback) {
-    var params = new URLSearchParams(data).toString();
-    var img = new Image();
-    img.onload = img.onerror = function() { if (callback) callback(); };
-    img.src = APPS_SCRIPT_URL + '?' + params;
-    setTimeout(function() { if (callback) { callback(); callback = null; } }, 3000);
   }
 
   form.addEventListener('submit', function(e) {
@@ -309,19 +298,26 @@ const rekening = [
     var email = form.querySelector('#email').value.trim();
     var topik = form.querySelector('#topik').value;
     var pesan = form.querySelector('#pesan').value.trim();
-    var tanggal = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+    var website = document.getElementById('hp-field').value;
 
     btn.disabled = true;
     btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="50" stroke-dashoffset="15"/></svg> Mengirim...';
 
-    var done = false;
-    sendToSheet({ nama: nama, phone: phone, email: email, topik: topik, pesan: pesan, tanggal: tanggal }, function() {
-      if (done) return;
-      done = true;
+    fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nama: nama, phone: phone, email: email, topik: topik, pesan: pesan, website: website }),
+    })
+    .then(function() {
       window.open(buildWaUrl(nama, topik, pesan), '_blank');
       btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Terkirim — menuju WhatsApp...';
       btn.disabled = false;
       setTimeout(function() { btn.innerHTML = btnDefault; }, 4000);
+    })
+    .catch(function() {
+      window.open(buildWaUrl(nama, topik, pesan), '_blank');
+      btn.innerHTML = btnDefault;
+      btn.disabled = false;
     });
   });
 </script>

@@ -10,6 +10,23 @@ import Testimonials from '../components/Testimonials.astro';
 import FAQ from '../components/FAQ.astro';
 import CTABanner from '../components/CTABanner.astro';
 import Footer from '../components/Footer.astro';
+import { supabaseStatic } from '@/lib/supabase/static';
+import { getHeroSlides, getStats, getFeatures, getProgramSlides, getGallery, getTestimonials, getFaqs, getPenerima } from '@/lib/supabase/queries/marketing';
+
+const [heroSlides, homeStats, features, programSlides, gallery, testimonials, faqs, penerima] = await Promise.all([
+  getHeroSlides(supabaseStatic),
+  getStats(supabaseStatic, 'home'),
+  getFeatures(supabaseStatic),
+  getProgramSlides(supabaseStatic),
+  getGallery(supabaseStatic),
+  getTestimonials(supabaseStatic),
+  getFaqs(supabaseStatic),
+  getPenerima(supabaseStatic),
+]);
+
+const mapPoints = penerima
+  .filter(p => p.lat != null && p.lng != null)
+  .map(p => ({ lng: p.lng!, lat: p.lat!, name: p.name, alamat: p.alamat ?? '', galon: p.galon }));
 ---
 
 <Layout
@@ -18,13 +35,13 @@ import Footer from '../components/Footer.astro';
 >
   <Nav />
   <main id="main-content">
-    <Hero />
-    <StatStrip />
-    <Features />
-    <Map />
-    <Gallery />
-    <Testimonials />
-    <FAQ />
+    <Hero slides={heroSlides} />
+    <StatStrip stats={homeStats} />
+    <Features features={features} programSlides={programSlides} />
+    <Map points={mapPoints} />
+    <Gallery slides={gallery} />
+    <Testimonials testimonials={testimonials} />
+    <FAQ faqs={faqs} />
     <CTABanner />
   </main>
   <Footer />

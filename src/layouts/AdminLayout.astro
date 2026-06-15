@@ -1,0 +1,50 @@
+---
+// SSR shell for the admin dashboard. Imports ONLY the shadcn token sheet
+// (tailwind.css) — never the public Twilight Water global.css — so the two
+// theming systems don't collide. Auth is already enforced by middleware; this
+// layout assumes locals.user / locals.role are populated.
+export const prerender = false;
+
+import '../styles/tailwind.css';
+import AdminShell from '@/components/admin/AdminShell';
+
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+
+const user = Astro.locals.user;
+const role = Astro.locals.role ?? 'editor';
+const currentPath = Astro.url.pathname;
+
+// Profile full_name for the topbar (cheap single lookup).
+let fullName = '';
+if (user) {
+  const { data } = await Astro.locals.supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .single<{ full_name: string }>();
+  fullName = data?.full_name ?? '';
+}
+---
+<!doctype html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>{title} — Admin SAM</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body class="bg-background text-foreground antialiased">
+  <AdminShell
+    client:load
+    currentPath={currentPath}
+    user={{ email: user?.email ?? null, fullName }}
+    role={role}
+  >
+    <slot />
+  </AdminShell>
+</body>
+</html>

@@ -1,0 +1,83 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { listPublishedArticles } from '@/lib/supabase/queries/articles';
+
+const page = Math.max(1, Number(Astro.url.searchParams.get('page') ?? '1'));
+const { articles, totalPages } = await listPublishedArticles(Astro.locals.supabase, { page, perPage: 9 });
+---
+
+<Layout
+  title="Artikel — Sedekah Air Minum"
+  description="Baca artikel terbaru seputar gerakan sedekah air minum, distribusi air bersih, dan cerita dari lapangan."
+>
+  <Nav />
+  <main id="main-content">
+    <div class="page-hero">
+      <span class="page-hero__eyebrow">Blog</span>
+      <h1 class="page-hero__title">Artikel <em>Terbaru</em></h1>
+      <p class="page-hero__intro">Cerita dari lapangan, update distribusi, dan inspirasi tentang sedekah air minum.</p>
+    </div>
+
+    <section class="section" style="padding-top:0">
+      <div class="container">
+        {articles.length === 0 ? (
+          <div style="text-align:center;padding:80px 0">
+            <p class="lead">Belum ada artikel. Nantikan tulisan pertama kami!</p>
+          </div>
+        ) : (
+          <div class="blog-grid fade-up">
+            {articles.map((a) => (
+              <BlogCard
+                slug={a.slug}
+                title={a.title}
+                excerpt={a.excerpt}
+                cover_image={a.cover_image}
+                published_at={a.published_at}
+                reading_time={a.reading_time}
+                category={a.category}
+              />
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <nav class="pagination fade-up" aria-label="Navigasi halaman">
+            {page > 1 && (
+              <a href={`/artikel?page=${page - 1}`} class="btn btn--ghost btn--sm">&larr; Sebelumnya</a>
+            )}
+            <span class="pagination__info">Halaman {page} dari {totalPages}</span>
+            {page < totalPages && (
+              <a href={`/artikel?page=${page + 1}`} class="btn btn--ghost btn--sm">Selanjutnya &rarr;</a>
+            )}
+          </nav>
+        )}
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+  }
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 56px;
+  }
+  .pagination__info {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+  }
+</style>

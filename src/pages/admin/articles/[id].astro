@@ -1,0 +1,36 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ArticleForm, { type ArticleInitial } from '@/components/admin/articles/ArticleForm';
+
+const { id } = Astro.params;
+const supabase = Astro.locals.supabase;
+
+const [{ data: article }, { data: categories }, { data: tags }, { data: artTags }] = await Promise.all([
+  supabase.from('articles').select('*').eq('id', id!).maybeSingle() as any,
+  supabase.from('categories').select('*').order('name') as any,
+  supabase.from('tags').select('*').order('name') as any,
+  supabase.from('article_tags').select('tag_id').eq('article_id', id!) as any,
+]);
+
+if (!article) return Astro.redirect('/admin/articles');
+
+const initial: ArticleInitial = {
+  id: article.id,
+  title: article.title,
+  slug: article.slug,
+  excerpt: article.excerpt ?? '',
+  content: article.content,
+  cover_image: article.cover_image ?? '',
+  status: article.status,
+  published_at: article.published_at,
+  category_id: article.category_id,
+  meta_title: article.meta_title ?? '',
+  meta_description: article.meta_description ?? '',
+  og_image: article.og_image ?? '',
+  tag_ids: (artTags ?? []).map((t: any) => t.tag_id),
+};
+---
+<AdminLayout title={`Edit: ${article.title}`}>
+  <ArticleForm client:load initial={initial} categories={categories ?? []} tags={tags ?? []} />
+</AdminLayout>

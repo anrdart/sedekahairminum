@@ -1,0 +1,14 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ActivityMonitor from '@/components/admin/ActivityMonitor';
+
+const { data } = await Astro.locals.supabase
+  .from('activity_log')
+  .select('*')
+  .order('created_at', { ascending: false })
+  .range(0, 24);
+---
+<AdminLayout title="Log Aktivitas">
+  <ActivityMonitor client:load initial={data ?? []} />
+</AdminLayout>

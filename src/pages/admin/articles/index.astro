@@ -1,0 +1,13 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ArticlesTable from '@/components/admin/articles/ArticlesTable';
+
+const { data } = await Astro.locals.supabase
+  .from('articles')
+  .select('id,title,slug,status,published_at,view_count,updated_at')
+  .order('updated_at', { ascending: false });
+---
+<AdminLayout title="Artikel">
+  <ArticlesTable client:load initial={data ?? []} />
+</AdminLayout>

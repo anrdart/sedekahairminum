@@ -1,24 +1,6 @@
 ---
-const testimonials = [
-  {
-    body: 'Distribusi air minum ini sangat bermanfaat bagi pondok kami, khususnya karena wilayah Gunungkidul memiliki air berkapur cukup tinggi. Bantuan ini membantu kebutuhan air minum santri agar tetap sehat dan semangat beraktivitas. Terima kasih atas kepedulian dan bantuannya.',
-    name: 'Yayasan Panti Asuhan Islam',
-    role: 'Gunungkidul',
-    photo: '/assets/testimoni/testi-1.webp',
-  },
-  {
-    body: 'Alhamdulillah, bantuan air minum ini sangat bermanfaat bagi pondok kami. Kami bersyukur karena kebutuhan air minum santri sangat terbantu, terlebih pengadaan galon sebelumnya sering terkendala keterlambatan pengiriman.',
-    name: 'Pondok Pesantren Ainul Yakin Special Childreen',
-    role: '',
-    photo: '/assets/testimoni/testi-2.webp',
-  },
-  {
-    body: 'Alhamdulillah, bantuan distribusi air minum ini membawa manfaat besar bagi pondok kami. Kebutuhan air bersih santri menjadi lebih tercukupi dan sangat membantu aktivitas sehari-hari di pondok. Kami mengucapkan terima kasih atas perhatian dan kepeduliannya.',
-    name: "Nurul Qur'an Islamic Boarding School",
-    role: '',
-    photo: '/assets/testimoni/testi-3.webp',
-  },
-];
+interface Props { testimonials: { body: string; name: string; role: string; photo: string | null }[] }
+const { testimonials } = Astro.props;
 ---
 
 <section class="section" style="background:var(--surface);border-block:1px solid var(--border)">

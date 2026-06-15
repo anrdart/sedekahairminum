@@ -1,11 +1,6 @@
 ---
-const faqs = [
-  { q: 'Apa itu Sedekah Air Minum?', a: 'Sedekah air minum adalah gerakan sedekah yang menyalurkan air minum gratis untuk pondok pesantren dan lembaga yang membutuhkan, terutama di daerah yang sulit terjangkau distribusi air komersial.' },
-  { q: 'Bagaimana cara berdonasi atau bersedekah?', a: 'Donatur cukup mengisi formulir donasi di website atau menghubungi nomor WhatsApp kami. Donasi mulai Rp 5.000 sudah bisa mengalirkan air bersih ke penerima manfaat. Setiap donatur akan menerima konfirmasi dan laporan update distribusi.' },
-  { q: 'Berapa lama proses penyaluran air ke penerima manfaat?', a: 'Setelah pengajuan terkonfirmasi, permohonan akan diproses mulai dari filterisasi data, survei, hingga distribusi. Bantuan air minum dapat diterima maksimal 14 hari kerja dan seluruh proses akan kami update melalui WhatsApp.' },
-  { q: 'Apakah saya akan mendapatkan bukti penyaluran?', a: 'Tentu, setiap donatur akan menerima info terbaru penyaluran air minum gratis via WhatsApp.' },
-  { q: 'Apakah ada minimal jumlah untuk sedekah?', a: 'Tidak ada minimum. Donasi dimulai dari Rp 5.000 — cukup untuk mengalirkan satu galon air bersih. Anda bebas berdonasi sesuai kemampuan; setiap tetes bernilai pahala.' },
-];
+interface Props { faqs: { q: string; a: string }[] }
+const { faqs } = Astro.props;
 ---
 
 <section class="section">

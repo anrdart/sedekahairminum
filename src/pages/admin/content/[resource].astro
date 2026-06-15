@@ -1,0 +1,18 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ResourceList from '@/components/admin/resources/ResourceList';
+import { RESOURCES } from '@/components/admin/resources.config';
+
+const slug = Astro.params.resource!;
+const def = RESOURCES[slug];
+if (!def) return Astro.redirect('/admin');
+
+const { data } = await (Astro.locals.supabase as any)
+  .from(def.table)
+  .select('*')
+  .order('sort_order', { ascending: true });
+---
+<AdminLayout title={def.labelPlural}>
+  <ResourceList client:load resourceSlug={slug} initial={(data ?? []) as Record<string, unknown>[]} />
+</AdminLayout>

@@ -1,0 +1,80 @@
+/* Editing surface styling. Mirrors the public blog prose so what you write
+   matches what readers see. Scoped to .tiptap-content. */
+.tiptap-content {
+  min-height: 24rem;
+  padding: 1.25rem 1.5rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--foreground);
+}
+.tiptap-content > * + * { margin-top: 0.85em; }
+.tiptap-content h2 { font-size: 1.6rem; font-weight: 600; line-height: 1.2; margin-top: 1.6em; }
+.tiptap-content h3 { font-size: 1.3rem; font-weight: 600; line-height: 1.25; margin-top: 1.3em; }
+.tiptap-content p { margin: 0; }
+.tiptap-content a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+.tiptap-content ul,
+.tiptap-content ol { padding-left: 1.4em; }
+.tiptap-content ul { list-style: disc; }
+.tiptap-content ol { list-style: decimal; }
+.tiptap-content li > * + * { margin-top: 0.3em; }
+.tiptap-content blockquote {
+  border-left: 3px solid var(--primary);
+  padding-left: 1em;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+.tiptap-content code {
+  background: var(--muted);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  font-size: 0.875em;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.tiptap-content pre {
+  background: #0d1117;
+  color: #e6edf3;
+  padding: 1em 1.2em;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.875rem;
+}
+.tiptap-content pre code { background: none; padding: 0; color: inherit; }
+.tiptap-content img { border-radius: 8px; max-width: 100%; height: auto; }
+.tiptap-content hr { border: none; border-top: 1px solid var(--border); margin: 1.6em 0; }
+.tiptap-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  overflow: hidden;
+}
+.tiptap-content th,
+.tiptap-content td {
+  border: 1px solid var(--border);
+  padding: 0.5em 0.75em;
+  text-align: left;
+  vertical-align: top;
+}
+.tiptap-content th { background: var(--muted); font-weight: 600; }
+.tiptap-content .tableWrapper { overflow-x: auto; }
+.tiptap-content .ProseMirror-selectednode { outline: 2px solid var(--primary); }
+
+/* Placeholder (extension-placeholder) */
+.tiptap-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  height: 0;
+}
+
+/* lowlight syntax tokens */
+.tiptap-content .hljs-comment,
+.tiptap-content .hljs-quote { color: #8b949e; }
+.tiptap-content .hljs-keyword,
+.tiptap-content .hljs-selector-tag { color: #ff7b72; }
+.tiptap-content .hljs-string,
+.tiptap-content .hljs-attr { color: #a5d6ff; }
+.tiptap-content .hljs-number,
+.tiptap-content .hljs-literal { color: #79c0ff; }
+.tiptap-content .hljs-title,
+.tiptap-content .hljs-function { color: #d2a8ff; }

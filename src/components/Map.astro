@@ -1,5 +1,10 @@
 ---
 import IndonesiaMap from './IndonesiaMap';
+
+interface Props {
+  points: Array<{ lng: number; lat: number; name: string; alamat: string; galon: number }>;
+}
+const { points } = Astro.props;
 ---
 
 <section class="section map-section">
@@ -12,7 +17,7 @@ import IndonesiaMap from './IndonesiaMap';
       </p>
     </div>
     <div class="fade-up map-wrapper" id="map-wrapper">
-      <IndonesiaMap client:only="react" />
+      <IndonesiaMap points={points} client:only="react" />
     </div>
     <div class="map-legend fade-up">
       <span class="map-legend__item"><span class="map-legend__dot" style="background:#5ee4f0"></span> Lokasi penerima manfaat</span>

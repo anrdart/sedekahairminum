@@ -1,0 +1,15 @@
+# Supabase CLI config. Run `supabase link --project-ref <ref>` then
+# `supabase db push` to apply the migrations in supabase/migrations/.
+project_id = "sedekahairminum"
+
+[db]
+major_version = 16
+
+[auth]
+# Email/password sign-in for the admin dashboard. Disable public sign-ups in the
+# dashboard after creating your admin user (Auth → Providers → Email → "Allow
+# new users to sign up" = off) so the dashboard stays invite-only.
+enable_signup = true
+
+[storage]
+enabled = true

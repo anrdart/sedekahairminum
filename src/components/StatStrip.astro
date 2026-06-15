@@ -1,10 +1,6 @@
 ---
-const stats = [
-  { num: 7, suffix: '', label: 'Kecamatan Terjangkau' },
-  { num: 19, suffix: '', label: 'Lembaga Penerima' },
-  { num: 298, suffix: '', label: 'Galon/Distribusi' },
-  { num: 1, suffix: '', label: 'Kabupaten Aktif' },
-];
+interface Props { stats: { num: number; suffix: string; label: string }[] }
+const { stats } = Astro.props;
 ---
 
 <section class="statstrip" aria-label="Statistik program">

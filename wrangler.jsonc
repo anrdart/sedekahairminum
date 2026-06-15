@@ -1,0 +1,37 @@
+{
+  // Cloudflare Workers config for the Astro SSR build.
+  // Build first with `bun run build`, then `wrangler deploy`.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sedekahairminum",
+  "compatibility_date": "2025-05-01",
+  // Required: @supabase/* pull in Node builtins (stream, events, crypto).
+  "compatibility_flags": ["nodejs_compat"],
+  // Custom worker entry adds a scheduled() cron handler alongside Astro's fetch.
+  "main": "./dist/_worker.js/index.js",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  // The Cloudflare adapter enables Astro Sessions backed by a KV namespace named
+  // SESSION. We don't use Astro Sessions (auth is Supabase cookies), but the
+  // binding must exist or SSR throws "Invalid binding `SESSION`". Create a KV
+  // namespace once with `wrangler kv namespace create SESSION` and paste its id.
+  "kv_namespaces": [
+    { "binding": "SESSION", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }
+  ],
+  // Public (build-inlined) values. Safe to commit — anon key is RLS-guarded.
+  // Fill these after creating your Supabase project. Secrets go via
+  // `wrangler secret put <NAME>` (SUPABASE_SERVICE_ROLE_KEY, CF_DEPLOY_HOOK_URL,
+  // CRON_SECRET) — never put secrets in this file.
+  "vars": {
+    "PUBLIC_SUPABASE_URL": "",
+    "PUBLIC_SUPABASE_ANON_KEY": ""
+  },
+  // Daily keep-alive ping at 03:07 UTC (off the :00 mark on purpose).
+  "triggers": {
+    "crons": ["7 3 * * *"]
+  }
+}

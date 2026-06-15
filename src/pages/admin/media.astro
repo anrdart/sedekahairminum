@@ -1,0 +1,13 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import MediaLibrary from '@/components/admin/media/MediaLibrary';
+
+const { data } = await Astro.locals.supabase
+  .from('media')
+  .select('*')
+  .order('created_at', { ascending: false });
+---
+<AdminLayout title="Media">
+  <MediaLibrary client:load initial={data ?? []} />
+</AdminLayout>

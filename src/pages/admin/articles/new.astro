@@ -1,0 +1,30 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ArticleForm, { type ArticleInitial } from '@/components/admin/articles/ArticleForm';
+
+const supabase = Astro.locals.supabase;
+const [{ data: categories }, { data: tags }] = await Promise.all([
+  supabase.from('categories').select('*').order('name'),
+  supabase.from('tags').select('*').order('name'),
+]);
+
+const initial: ArticleInitial = {
+  id: null,
+  title: '',
+  slug: '',
+  excerpt: '',
+  content: null,
+  cover_image: '',
+  status: 'draft',
+  published_at: null,
+  category_id: null,
+  meta_title: '',
+  meta_description: '',
+  og_image: '',
+  tag_ids: [],
+};
+---
+<AdminLayout title="Artikel Baru">
+  <ArticleForm client:load initial={initial} categories={categories ?? []} tags={tags ?? []} />
+</AdminLayout>

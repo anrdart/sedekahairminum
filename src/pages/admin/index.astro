@@ -1,0 +1,31 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import DashboardHome from '@/components/admin/DashboardHome';
+
+const supabase = Astro.locals.supabase;
+
+// Recent activity + last heartbeat for the dashboard widgets.
+const [{ data: recent }, { data: lastHb }] = await Promise.all([
+  supabase.from('activity_log').select('*').order('created_at', { ascending: false }).limit(12),
+  supabase.rpc('last_heartbeat'),
+]);
+
+// Quick content counts.
+const tables = ['articles', 'penerima', 'testimonials', 'contact_submissions'] as const;
+const counts: Record<string, number> = {};
+await Promise.all(
+  tables.map(async (t) => {
+    const { count } = await supabase.from(t).select('*', { count: 'exact', head: true });
+    counts[t] = count ?? 0;
+  }),
+);
+---
+<AdminLayout title="Dashboard">
+  <DashboardHome
+    client:load
+    recent={recent ?? []}
+    lastHeartbeat={typeof lastHb === 'string' ? lastHb : null}
+    counts={counts}
+  />
+</AdminLayout>
