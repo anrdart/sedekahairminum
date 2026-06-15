@@ -29,8 +29,14 @@ export default defineConfig({
       chunkSizeWarningLimit: 1200,
     },
     ssr: {
-      // Run Supabase as real deps under workerd rather than bundling.
       external: ['@supabase/supabase-js', '@supabase/ssr'],
+    },
+    resolve: {
+      alias: [
+        // Force react-dom/server to the edge build (no MessageChannel).
+        // The browser build requires Node-only globals that Workers lack.
+        { find: 'react-dom/server', replacement: 'react-dom/server.edge' },
+      ],
     },
   },
 });
