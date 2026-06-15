@@ -27,6 +27,11 @@ export default function TipTapEditor({ initialContent, onChange, placeholder }: 
     editorProps: {
       attributes: { class: 'tiptap-content focus:outline-none' },
     },
+    onCreate: ({ editor }) => {
+      // Emit initial content so the parent ref is populated even if the user
+      // never types (e.g. only edits cover image then saves).
+      onChange(editor.getJSON(), editor.getHTML(), editor.getText());
+    },
     onUpdate: ({ editor }) => {
       onChange(editor.getJSON(), editor.getHTML(), editor.getText());
     },

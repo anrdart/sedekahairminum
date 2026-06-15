@@ -53,11 +53,11 @@ export async function listPublishedArticles(
   };
 }
 
-export interface FullArticle extends Database['public']['Tables']['articles']['Row'] {
+export type FullArticle = Database['public']['Tables']['articles']['Row'] & {
   category: { name: string; slug: string } | null;
   article_tags: { tag: { name: string; slug: string } | null }[];
   author_name: string;
-}
+};
 
 export async function getArticleBySlug(client: DB, slug: string): Promise<FullArticle | null> {
   // No direct FK from articles.author_id → profiles, so fetch article + author separately.

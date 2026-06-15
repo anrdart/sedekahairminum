@@ -46,12 +46,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
     publishedAt = new Date().toISOString();
   }
 
-  const row = {
+  // Guard: if the editor didn't produce HTML (e.g. onCreate didn't fire) but
+  // content JSON exists, don't overwrite existing content_html with empty string.
+  const hasContent = payload.content && typeof payload.content === 'object';
+  const htmlToSave = cleanHtml || (hasContent ? undefined : '');
+
+  const row: Record<string, unknown> = {
     title: payload.title,
     slug,
     excerpt: payload.excerpt ?? null,
     content: payload.content ?? null,
-    content_html: cleanHtml,
+    ...(htmlToSave !== undefined && { content_html: htmlToSave }),
     cover_image: payload.cover_image ?? null,
     status: payload.status,
     published_at: publishedAt,
