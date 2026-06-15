@@ -4,13 +4,20 @@ import { z } from 'zod';
 import { ok, badRequest, serverError, clientIp } from '@/lib/api';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 
+const MAX_NAMA = 120;
+const MAX_PHONE = 32;
+const MAX_EMAIL = 254;
+const MAX_TOPIK = 120;
+const MAX_PESAN = 5000;
+const MAX_HONEYPOT = 200;
+
 const schema = z.object({
-  nama: z.string().min(1, 'Nama wajib diisi'),
-  phone: z.string().min(1, 'Nomor WhatsApp wajib diisi'),
-  email: z.string().optional().default(''),
-  topik: z.string().optional().default(''),
-  pesan: z.string().min(1, 'Pesan wajib diisi'),
-  website: z.string().optional().default(''), // honeypot
+  nama: z.string().min(1, 'Nama wajib diisi').max(MAX_NAMA),
+  phone: z.string().min(1, 'Nomor WhatsApp wajib diisi').max(MAX_PHONE),
+  email: z.email('Email tidak valid').max(MAX_EMAIL).optional().or(z.literal('').transform(() => '')),
+  topik: z.string().max(MAX_TOPIK).optional().default(''),
+  pesan: z.string().min(1, 'Pesan wajib diisi').max(MAX_PESAN),
+  website: z.string().max(MAX_HONEYPOT).optional().default(''), // honeypot
 });
 
 export const POST: APIRoute = async ({ request, locals }) => {

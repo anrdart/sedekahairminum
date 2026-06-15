@@ -2,13 +2,14 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 import { ok, badRequest, forbidden, serverError } from '@/lib/api';
+import { passwordStrengthError } from '@/lib/security';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { recordActivity } from '@/lib/activity';
 
 const schema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
-  full_name: z.string().optional().default(''),
+  password: z.string().min(8),
+  full_name: z.string().max(120).optional().default(''),
   role: z.enum(['admin', 'editor']).default('editor'),
 });
 
@@ -19,24 +20,45 @@ export const POST: APIRoute = async ({ request, locals }) => {
   try { payload = schema.parse(await request.json()); }
   catch (e) { return badRequest(e instanceof z.ZodError ? e.issues[0]?.message ?? 'Invalid' : 'Invalid body'); }
 
+  const pwErr = passwordStrengthError(payload.password);
+  if (pwErr) return badRequest(pwErr);
+
+  // Privilege-multiplication guard: only owner can create admin.
+  if (payload.role === 'admin' && locals.role !== 'owner') {
+    return forbidden('Hanya owner yang bisa membuat user admin');
+  }
+
   const runtimeEnv = locals.runtime?.env as Record<string, string> | undefined;
   const admin = createSupabaseAdmin(runtimeEnv);
 
-  // Create auth user via admin API (bypasses email confirmation).
+  // No auto-confirm: user must verify via recovery link.
   const { data: authData, error: authError } = await admin.auth.admin.createUser({
     email: payload.email,
     password: payload.password,
-    email_confirm: true,
+    email_confirm: false,
     user_metadata: { full_name: payload.full_name },
   });
-  if (authError) return serverError(authError.message);
+  if (authError) {
+    if (authError.message.toLowerCase().includes('already')) {
+      return badRequest('Tidak dapat membuat user');
+    }
+    return serverError(authError.message);
+  }
   const userId = authData.user.id;
 
-  // The handle_new_user trigger auto-creates a profile. Update role + name.
   await admin.from('profiles').update({
     role: payload.role,
     full_name: payload.full_name,
   } as never).eq('id', userId);
+
+  // Send recovery email so user sets their own password (proves email ownership).
+  await admin.auth.admin.generateLink({
+    type: 'recovery',
+    email: payload.email,
+    options: {
+      redirectTo: `${runtimeEnv?.PUBLIC_SUPABASE_URL || 'https://sedekahairminum.com'}/admin/login`,
+    },
+  });
 
   await recordActivity(locals.supabase, {
     action: 'create',

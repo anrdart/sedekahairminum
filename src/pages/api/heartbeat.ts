@@ -1,32 +1,40 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
 import { json, ok, unauthorized, serverError } from '@/lib/api';
+import { safeEqual } from '@/lib/security';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { resolveEnv } from '@/lib/supabase/env';
 
 // Keep-alive endpoint. Two callers:
-//   1. Cloudflare Cron / external cron — must present X-Cron-Secret. Uses the
-//      service-role client (no user session) to call the heartbeat() RPC.
+//   1. Cloudflare Cron / external cron — must present X-Cron-Secret header.
+//      Uses the service-role client (no user session) to call heartbeat() RPC.
 //   2. The dashboard "Ping now" button — an authenticated admin/editor; uses
 //      their RLS-scoped client.
 // Either way the result is an INSERT into activity_log, which resets Supabase's
 // free-tier inactivity timer.
 
-export const POST: APIRoute = async ({ request, locals }) => {
+async function verifyCron(request: Request, locals: any): Promise<Response | null> {
   const env = resolveEnv(locals.runtime?.env as Record<string, string> | undefined);
+  const provided = request.headers.get('x-cron-secret') ?? '';
+  if (!env.CRON_SECRET || !provided || !safeEqual(provided, env.CRON_SECRET)) {
+    return unauthorized('Bad cron secret');
+  }
+  return null;
+}
+
+export const POST: APIRoute = async ({ request, locals }) => {
   const provided = request.headers.get('x-cron-secret');
   const fromDashboard = request.headers.get('x-source') === 'dashboard';
 
-  // Cron path: verify the shared secret, use service role.
   if (provided) {
-    if (!env.CRON_SECRET || provided !== env.CRON_SECRET) return unauthorized('Bad cron secret');
+    const err = await verifyCron(request, locals);
+    if (err) return err;
     const admin = createSupabaseAdmin(locals.runtime?.env as Record<string, string> | undefined);
     const { error } = await admin.rpc('heartbeat');
     if (error) return serverError(error.message);
     return ok({ at: new Date().toISOString() });
   }
 
-  // Dashboard path: must be an authenticated admin/editor.
   if (fromDashboard) {
     if (!locals.user || !locals.role) return unauthorized();
     const { error } = await locals.supabase.rpc('heartbeat');
@@ -37,11 +45,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
   return unauthorized('Missing X-Cron-Secret');
 };
 
-// Allow GET for simple external cron services (cron-job.org) that only do GET.
+// GET variant: ONLY accepts the secret via header. Query-string secret
+// deliberately rejected — query strings land in access logs, browser history,
+// and Referer headers, leaking the secret.
 export const GET: APIRoute = async ({ request, locals }) => {
-  const env = resolveEnv(locals.runtime?.env as Record<string, string> | undefined);
-  const provided = request.headers.get('x-cron-secret') || new URL(request.url).searchParams.get('secret');
-  if (!env.CRON_SECRET || provided !== env.CRON_SECRET) return unauthorized('Bad cron secret');
+  const err = await verifyCron(request, locals);
+  if (err) return err;
   const admin = createSupabaseAdmin(locals.runtime?.env as Record<string, string> | undefined);
   const { error } = await admin.rpc('heartbeat');
   if (error) return serverError(error.message);

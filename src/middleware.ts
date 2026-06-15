@@ -3,8 +3,19 @@ import { createSupabaseServer } from '@/lib/supabase/server';
 import { publicEnv } from '@/lib/supabase/env';
 import type { Role } from '@/lib/supabase/types';
 
-// Routes under /admin that require an admin/owner role (not just editor).
 const ADMIN_ONLY_PREFIXES = ['/admin/settings', '/admin/users', '/admin/activity', '/admin/submissions'];
+
+/** Security headers applied to admin HTML responses. */
+function applySecurityHeaders(response: Response, path: string): Response {
+  if (path.startsWith('/admin')) {
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('Referrer-Policy', 'no-referrer');
+  }
+  return response;
+}
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { cookies, locals, url, redirect, request } = context;
@@ -14,15 +25,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const needsAuth = path.startsWith('/admin') && path !== '/admin/login';
   const isLogin = path === '/admin/login';
   const isApi = path.startsWith('/api/');
-  // SSR routes that need a Supabase client (blog, RSS, sitemap, admin, API).
   const isSsr = needsAuth || isLogin || isApi
     || path.startsWith('/artikel') || path.startsWith('/rss') || path.startsWith('/sitemap-articles');
 
-  // Prerendered marketing pages never need a request-bound client. Skip when
-  // env is missing (fresh clone) or the route is static.
   const { url: supaUrl, anonKey } = publicEnv(runtimeEnv);
   if (!isSsr || !supaUrl || !anonKey) {
-    return next();
+    const response = await next();
+    return applySecurityHeaders(response, path);
   }
 
   const supabase = createSupabaseServer(cookies, runtimeEnv, request.headers.get('cookie'));
@@ -30,11 +39,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   locals.user = null;
   locals.role = null;
 
-  // Only check auth for admin / API routes (not public blog).
   if (needsAuth || isLogin || isApi) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     locals.user = user ?? null;
     if (user) {
       const { data: profile } = await supabase
@@ -47,7 +53,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   if (needsAuth && !locals.user) {
-    return redirect(`/admin/login?next=${encodeURIComponent(path)}`);
+    // Open-redirect guard: include search string, drop any protocol-relative
+    // path the browser might try to interpret as off-site.
+    const next = url.pathname + url.search;
+    return redirect(`/admin/login?next=${encodeURIComponent(next)}`);
   }
   if (needsAuth && ADMIN_ONLY_PREFIXES.some((p) => path.startsWith(p))) {
     if (locals.role !== 'owner' && locals.role !== 'admin') {
@@ -58,5 +67,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return redirect('/admin');
   }
 
-  return next();
+  const response = await next();
+  return applySecurityHeaders(response, path);
 });
