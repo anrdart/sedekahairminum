@@ -4,18 +4,34 @@ import react from '@astrojs/react';
 import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 
-// Hybrid: `output: 'static'` keeps marketing pages prerendered (fast, SEO).
-// Routes that `export const prerender = false` (blog, /admin, /api) render
-// on-demand via the Cloudflare adapter. Pinned to adapter v12 because
-// Astro 6 + adapter v13 hybrid is currently broken (withastro/astro#15237).
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const EDGE_SERVER = require.resolve('react-dom/server.edge');
+
+// Vite plugin: react-dom/server → edge build ONLY during build. The edge build
+// uses ReadableStream (no MessageChannel) which Workers need. In dev, the
+// default node build works fine (Vite dev runs under Node, not workerd).
+function reactDomEdge() {
+  return {
+    name: 'react-dom-edge',
+    enforce: 'pre',
+    apply: 'build',
+    resolveId(source) {
+      if (source === 'react-dom/server' || source === 'react-dom/server.browser') {
+        return EDGE_SERVER;
+      }
+    },
+  };
+}
+
 export default defineConfig({
   site: 'https://sedekahairminum.com',
   output: 'static',
   adapter: cloudflare({
-    platformProxy: { enabled: true }, // exposes Astro.locals.runtime.env in `astro dev`
-    imageService: 'compile',          // keep Astro asset pipeline at build time
+    platformProxy: { enabled: true },
+    imageService: 'compile',
     workerEntryPoint: {
-      path: 'src/worker.ts',          // adds the scheduled() cron handler for keep-alive
+      path: 'src/worker.ts',
     },
   }),
   integrations: [sitemap(), react()],
@@ -24,19 +40,12 @@ export default defineConfig({
   },
   compressHTML: true,
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), reactDomEdge()],
     build: {
       chunkSizeWarningLimit: 1200,
     },
     ssr: {
       external: ['@supabase/supabase-js', '@supabase/ssr'],
-    },
-    resolve: {
-      alias: [
-        // Force react-dom/server to the edge build (no MessageChannel).
-        // The browser build requires Node-only globals that Workers lack.
-        { find: 'react-dom/server', replacement: 'react-dom/server.edge' },
-      ],
     },
   },
 });
