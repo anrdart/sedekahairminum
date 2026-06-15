@@ -1,0 +1,33 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import UsersManager from '@/components/admin/UsersManager';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
+import type { Role } from '@/lib/supabase/types';
+
+const runtimeEnv = Astro.locals.runtime?.env as Record<string, string> | undefined;
+const admin = createSupabaseAdmin(runtimeEnv);
+
+// List all auth users + their profiles.
+const { data: authUsers } = await admin.auth.admin.listUsers();
+const { data: profiles } = await (admin as any).from('profiles').select('id, full_name, role');
+
+const profileMap = new Map<string, { full_name: string; role: Role }>();
+for (const p of (profiles ?? []) as any[]) {
+  profileMap.set(p.id, { full_name: p.full_name ?? '', role: p.role ?? 'editor' });
+}
+
+const users = (authUsers?.users ?? []).map((u) => {
+  const profile = profileMap.get(u.id);
+  return {
+    id: u.id,
+    email: u.email ?? '',
+    full_name: profile?.full_name ?? u.user_metadata?.full_name ?? '',
+    role: profile?.role ?? 'editor',
+    created_at: u.created_at,
+  };
+});
+---
+<AdminLayout title="Pengguna">
+  <UsersManager client:load initial={users} currentUserId={Astro.locals.user?.id ?? ''} />
+</AdminLayout>
