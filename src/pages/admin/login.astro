@@ -1,0 +1,23 @@
+---
+export const prerender = false;
+import '../../styles/tailwind.css';
+import LoginForm from '@/components/admin/LoginForm';
+
+// Middleware already redirects authenticated users away from /admin/login.
+const next = Astro.url.searchParams.get('next') ?? '/admin';
+---
+<!doctype html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Masuk — Admin SAM</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body class="bg-background text-foreground antialiased">
+  <main class="grid min-h-screen place-items-center p-4">
+    <LoginForm client:load next={next} />
+  </main>
+</body>
+</html>

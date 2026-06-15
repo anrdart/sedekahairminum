@@ -14,6 +14,9 @@ export default defineConfig({
   adapter: cloudflare({
     platformProxy: { enabled: true }, // exposes Astro.locals.runtime.env in `astro dev`
     imageService: 'compile',          // keep Astro asset pipeline at build time
+    workerEntryPoint: {
+      path: 'src/worker.ts',          // adds the scheduled() cron handler for keep-alive
+    },
   }),
   integrations: [sitemap(), react()],
   build: {
