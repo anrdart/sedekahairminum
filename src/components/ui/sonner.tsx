@@ -1,11 +1,31 @@
+import * as React from "react"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
-// Admin runs in a fixed dark theme (shadcn tokens), so next-themes isn't needed.
+// Admin theme = `.dark` class on <html> (toggled in AdminShell). Track it so
+// toasts match the active light (ivory) / dark palette.
+function useAdminTheme(): "light" | "dark" {
+  const [theme, setTheme] = React.useState<"light" | "dark">("dark")
+  React.useEffect(() => {
+    const read = () =>
+      setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light")
+    read()
+    window.addEventListener("sam-theme-change", read)
+    const observer = new MutationObserver(read)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
+    return () => {
+      window.removeEventListener("sam-theme-change", read)
+      observer.disconnect()
+    }
+  }, [])
+  return theme
+}
+
 const Toaster = ({ ...props }: ToasterProps) => {
+  const theme = useAdminTheme()
   return (
     <Sonner
-      theme="dark"
+      theme={theme}
       className="toaster group"
       icons={{
         success: (

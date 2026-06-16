@@ -12,8 +12,16 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableHeader } from '@tiptap/extension-table-header';
 import { TableCell } from '@tiptap/extension-table-cell';
+import { TaskList, TaskItem } from '@tiptap/extension-list';
 import CharacterCount from '@tiptap/extension-character-count';
 import Typography from '@tiptap/extension-typography';
+import Highlight from '@tiptap/extension-highlight';
+import Subscript from '@tiptap/extension-subscript';
+import Superscript from '@tiptap/extension-superscript';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-text-style/color';
+import { FontFamily } from '@tiptap/extension-text-style/font-family';
+import { FontSize } from '@tiptap/extension-text-style/font-size';
 import { createLowlight, common } from 'lowlight';
 import type { AnyExtension } from '@tiptap/core';
 
@@ -39,6 +47,18 @@ export function buildExtensions(placeholder = 'Tulis artikel di sini…'): AnyEx
     TableRow,
     TableHeader,
     TableCell,
+    // Interactive checklist.
+    TaskList,
+    TaskItem.configure({ nested: true }),
+    // Inline color / highlight / font controls. TextStyle MUST come before the
+    // Color/FontFamily/FontSize marks that attach their attributes to it.
+    Highlight.configure({ multicolor: true }),
+    TextStyle,
+    Color,
+    FontFamily,
+    FontSize,
+    Subscript,
+    Superscript,
     CharacterCount,
     Typography,
   ];

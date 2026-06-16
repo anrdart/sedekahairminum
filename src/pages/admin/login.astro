@@ -12,6 +12,11 @@ const next = Astro.url.searchParams.get('next') ?? '/admin';
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
+  <script is:inline>
+    (function(){try{var t=localStorage.getItem('sam-admin-theme');
+      if(t==='light')document.documentElement.classList.remove('dark');
+      else document.documentElement.classList.add('dark');}catch(e){}})();
+  </script>
   <title>Masuk — Admin SAM</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 </head>

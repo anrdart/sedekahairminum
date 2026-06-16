@@ -144,6 +144,7 @@ export default function AdminShell({ currentPath, user, role, children }: Props)
 
           <div className="ml-auto flex items-center gap-2">
             <RebuildButton role={role} />
+            <ThemeToggle />
             <span className="hidden text-xs text-muted-foreground sm:inline">
               {user.fullName || user.email}
               <span className="ml-1 capitalize text-primary">({role})</span>
@@ -198,6 +199,41 @@ function RebuildButton({ role }: { role: Role }) {
     <Button variant="outline" size="sm" onClick={rebuild} disabled={loading}>
       <Icon name={loading ? 'loader-circle' : 'rocket'} className={loading ? 'animate-spin' : ''} />
       Publish ke situs
+    </Button>
+  );
+}
+
+// Light/dark toggle. Theme lives as a `.dark` class on <html> (applied pre-paint
+// by the inline script in AdminLayout); we flip it and persist the choice.
+function ThemeToggle() {
+  const [isDark, setIsDark] = React.useState(true);
+
+  React.useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'));
+  }, []);
+
+  function toggle() {
+    const next = !isDark;
+    document.documentElement.classList.toggle('dark', next);
+    try {
+      localStorage.setItem('sam-admin-theme', next ? 'dark' : 'light');
+    } catch {
+      /* ignore storage failures */
+    }
+    setIsDark(next);
+    // Notify same-tab listeners (e.g. the toaster) that the theme changed.
+    window.dispatchEvent(new CustomEvent('sam-theme-change', { detail: next ? 'dark' : 'light' }));
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      onClick={toggle}
+      aria-label={isDark ? 'Beralih ke mode terang' : 'Beralih ke mode gelap'}
+      title={isDark ? 'Mode terang (ivory)' : 'Mode gelap'}
+    >
+      <Icon name={isDark ? 'sun' : 'moon'} />
     </Button>
   );
 }

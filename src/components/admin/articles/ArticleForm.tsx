@@ -1,6 +1,6 @@
 import * as React from 'react';
 import type { JSONContent } from '@tiptap/react';
-import TipTapEditor from '../editor/TipTapEditor';
+import TipTapEditor, { type EditorHandle } from '../editor/TipTapEditor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,6 +43,13 @@ interface Props {
 
 const NO_CATEGORY = '__none__';
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 export default function ArticleForm({ initial, categories, tags }: Props) {
   const [title, setTitle] = React.useState(initial.title);
   const [slug, setSlug] = React.useState(initial.slug);
@@ -67,10 +74,61 @@ export default function ArticleForm({ initial, categories, tags }: Props) {
   });
   const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const coverInputRef = React.useRef<HTMLInputElement>(null);
+  const editorRef = React.useRef<EditorHandle>(null);
 
   function onTitleChange(value: string) {
     setTitle(value);
     if (!slugTouched) setSlug(toSlug(value));
+  }
+
+  // Smart paste (WordPress/Elementor-style): pasting a whole draft into the
+  // title field splits the first line into the title and pours the rest into the
+  // editor body. A single-line paste is left untouched (normal behaviour).
+  function handleTitlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const html = e.clipboardData.getData('text/html');
+    const plain = e.clipboardData.getData('text/plain');
+
+    let firstLine = '';
+    let restHtml = '';
+
+    if (html) {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      // Editors like Google Docs wrap everything in a single <b>/<div>; unwrap
+      // such single-child wrappers until we reach the real list of blocks.
+      let container: Element = doc.body;
+      while (true) {
+        const kids = Array.from(container.children).filter(
+          (el) => (el.textContent ?? '').trim().length > 0,
+        );
+        if (kids.length === 1 && kids[0].children.length > 0) container = kids[0];
+        else break;
+      }
+      const blocks = Array.from(container.children).filter(
+        (el) => (el.textContent ?? '').trim().length > 0,
+      );
+      if (blocks.length > 1) {
+        firstLine = (blocks[0].textContent ?? '').trim();
+        restHtml = blocks.slice(1).map((el) => el.outerHTML).join('');
+      }
+    }
+
+    // Fall back to plain text (also covers HTML that wouldn't split — the plain
+    // clipboard flavour from Docs/Word keeps real newlines between paragraphs).
+    if ((!firstLine || !restHtml) && plain) {
+      const lines = plain.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      if (lines.length > 1) {
+        firstLine = lines[0];
+        restHtml = lines.slice(1).map((l) => `<p>${escapeHtml(l)}</p>`).join('');
+      }
+    }
+
+    // Nothing to split → let the browser paste normally into the input.
+    if (!firstLine || !restHtml) return;
+
+    e.preventDefault();
+    onTitleChange(firstLine);
+    editorRef.current?.appendContent(restHtml);
+    toast.success('Judul & isi terpisah otomatis');
   }
 
   function toggleTag(id: string) {
@@ -164,10 +222,12 @@ export default function ArticleForm({ initial, categories, tags }: Props) {
           <Input
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
-            placeholder="Judul artikel…"
+            onPaste={handleTitlePaste}
+            placeholder="Judul artikel… (tempel seluruh draf untuk pisah otomatis)"
             className="h-12 border-0 bg-transparent px-0 text-2xl font-semibold shadow-none focus-visible:ring-0 md:text-3xl"
           />
           <TipTapEditor
+            ref={editorRef}
             initialContent={initial.content}
             onChange={(json, html, text) => {
               editorState.current = { json, html, text };

@@ -82,33 +82,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
     let articleId = payload.id ?? null;
 
     if (articleId) {
-      // Ownership check on update: editor may only edit their own articles.
-      // Owner/admin may edit any.
-      if (locals.role === 'editor') {
-        const { data: existing } = await supabase
-          .from('articles')
-          .select('author_id')
-          .eq('id', articleId)
-          .maybeSingle<{ author_id: string | null }>();
-        if (existing && existing.author_id && existing.author_id !== locals.user.id) {
-          return forbidden('Editor hanya bisa mengedit artikel sendiri');
-        }
-      }
-      // Publish privilege: only owner/admin can publish or schedule.
-      if (payload.status === 'published' || payload.status === 'scheduled') {
-        if (locals.role !== 'owner' && locals.role !== 'admin') {
-          return forbidden('Hanya owner/admin yang bisa menerbitkan artikel');
-        }
-      }
+      // Any signed-in editor/admin/owner may edit and publish any article — this
+      // mirrors the DB RLS policy `articles_editor_all` (the real authz boundary).
       const { error } = await supabase.from('articles').update(row as never).eq('id', articleId);
       if (error) return slugError(error.message);
     } else {
-      // Create: same publish privilege for the new article.
-      if (payload.status === 'published' || payload.status === 'scheduled') {
-        if (locals.role !== 'owner' && locals.role !== 'admin') {
-          return forbidden('Hanya owner/admin yang bisa menerbitkan artikel');
-        }
-      }
       const { data, error } = await supabase
         .from('articles')
         .insert({ ...row, author_id: locals.user.id } as never)

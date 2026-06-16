@@ -171,6 +171,13 @@ const tags = ((article as any).article_tags ?? []).map((at: any) => at.tag);
   .article__body :global(table) { width: 100%; border-collapse: collapse; margin: 1.4em 0; }
   .article__body :global(th), .article__body :global(td) { border: 1px solid var(--border); padding: 0.5em 0.75em; text-align: left; }
   .article__body :global(th) { background: var(--surface-2); font-weight: 600; }
+  .article__body :global(mark) { background-color: #fef08a; color: #1a1814; border-radius: 2px; padding: 0 0.1em; }
+  .article__body :global(sub) { font-size: 0.75em; vertical-align: sub; }
+  .article__body :global(sup) { font-size: 0.75em; vertical-align: super; }
+  .article__body :global(ul[data-type="taskList"]) { list-style: none; padding-left: 0; }
+  .article__body :global(ul[data-type="taskList"] li) { display: flex; align-items: flex-start; gap: 0.5em; }
+  .article__body :global(ul[data-type="taskList"] li > div) { flex: 1 1 auto; }
+  .article__body :global(ul[data-type="taskList"] input[type="checkbox"]) { margin-top: 0.45em; accent-color: var(--aqua); }
   .article__tags {
     display: flex;
     flex-wrap: wrap;

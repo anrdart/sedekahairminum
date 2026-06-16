@@ -10,7 +10,18 @@ const allowedTags = [
   'strong', 'em', 'u', 's', 'br', 'hr', 'span', 'mark', 'sub', 'sup',
   'img', 'figure', 'figcaption',
   'table', 'thead', 'tbody', 'tr', 'th', 'td',
+  // Task list (checklist) structure emitted by TipTap TaskList/TaskItem.
+  'div', 'label', 'input',
 ];
+
+// Whitelist of font-family values the editor can apply (matches FONT_FAMILIES
+// in EditorToolbar). Anything else is dropped to avoid CSS injection.
+const FONT_FAMILY = [
+  /^Georgia, "Times New Roman", serif$/,
+  /^ui-monospace, "JetBrains Mono", monospace$/,
+];
+// font-size limited to small rem/px/em values produced by the toolbar.
+const FONT_SIZE = [/^(0?\.\d+|[0-3](\.\d+)?)(rem|em)$/, /^([1-9]|[1-4]\d)px$/];
 
 // CSS color validation: 3, 4, 6, or 8 hex digits after `#`. Tightened from the
 // original loose regex (which allowed `#0x` and arbitrary lengths).
@@ -28,10 +39,15 @@ export function sanitizeArticleHtml(dirty: string): string {
       a: ['href', 'title', 'target', 'rel'],
       img: ['src', 'alt', 'title', 'width', 'height', 'loading'],
       span: ['class', 'style'],
+      mark: ['style', 'data-color'],
       code: ['class'],
       pre: ['class'],
       td: ['colspan', 'rowspan'],
       th: ['colspan', 'rowspan'],
+      // Checklist: keep the checkbox state but it is forced read-only below.
+      input: ['type', 'checked', 'disabled'],
+      ul: ['data-type'],
+      li: ['data-type', 'data-checked'],
       '*': ['data-*'],
     },
     // No `data:` in anchor href — prevents data:text/html phishing links.
@@ -45,6 +61,16 @@ export function sanitizeArticleHtml(dirty: string): string {
         attribs: {
           ...attribs,
           ...(attribs.target === '_blank' ? { rel: 'noopener noreferrer nofollow' } : {}),
+        },
+      }),
+      // Checklist checkboxes render in public articles read-only: force disabled
+      // and drop any name/value so they can never be a real form control.
+      input: (tagName, attribs) => ({
+        tagName,
+        attribs: {
+          type: 'checkbox',
+          disabled: 'disabled',
+          ...(attribs.checked ? { checked: 'checked' } : {}),
         },
       }),
       // Strip event handlers and javascript: URLs that slipped through scheme filtering.
@@ -62,6 +88,9 @@ export function sanitizeArticleHtml(dirty: string): string {
       '*': {
         'text-align': [/^left$/, /^right$/, /^center$/, /^justify$/],
         color: [HEX_COLOR, RGB_COLOR],
+        'background-color': [HEX_COLOR, RGB_COLOR],
+        'font-family': FONT_FAMILY,
+        'font-size': FONT_SIZE,
       },
     },
   });

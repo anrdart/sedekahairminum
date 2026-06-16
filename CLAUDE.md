@@ -14,7 +14,7 @@ Aturan:
 - Marketing pages = static, `/artikel/*` + `/admin/**` + `/api/**` = SSR (wajib `export const prerender = false`)
 - Login UI: POST ke `/api/auth/login` (server-side), selalu tampilkan error generic, rate limit 3s/30s
 - Selalu sanitize `content_html` lewat `sanitizeArticleHtml()` sebelum simpan
-- Editor hanya boleh edit artikel sendiri; only owner/admin bisa publish
+- Semua role login (editor/admin/owner) boleh edit & terbitkan artikel apa pun (selaras RLS `articles_editor_all`); guard cukup auth dasar di `save.ts`
 - Owner-only admin creation; last-admin guard pada demote
 - Untuk query ke `articles` join ke profiles: `author_id` FK ke `auth.users` (bukan profiles), fetch terpisah
 - Cron secret HANYA via `X-Cron-Secret` header, jangan query string (ke-log di akses Cloudflare)

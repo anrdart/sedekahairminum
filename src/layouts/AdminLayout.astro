@@ -34,6 +34,12 @@ if (user) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
+  <script is:inline>
+    // Apply saved admin theme before paint (anti-FOUC). Default is dark.
+    (function(){try{var t=localStorage.getItem('sam-admin-theme');
+      if(t==='light')document.documentElement.classList.remove('dark');
+      else document.documentElement.classList.add('dark');}catch(e){}})();
+  </script>
   <title>{title} — Admin SAM</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 </head>
